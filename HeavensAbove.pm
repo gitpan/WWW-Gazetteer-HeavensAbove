@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -326,6 +326,10 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
  $atlas->fetch( US => 'N*', sub { $c++; $n += @_ }  );
  print "$c web requests for fetching $n cities";
 
+ # or use your own UserAgent
+ my $ua = LWP::UserAgent->new;
+ $atlas = WWW::Gazetteer::HeavensAbove->new( ua => $ua );
+
 =head1 DESCRIPTION
 
 A gazetteer is a geographical dictionary (as at the back of an atlas).
@@ -378,6 +382,13 @@ Here is an example of an American city:
 
 Return a new WWW::Gazetteer::UserAgent, ready to fetch() cities for you.
 
+The constructor can be given a list of parameters.
+Currently supported parameters are :
+
+C<ua   > - the LWP::UserAgent used for the web requests
+
+C<retry> - the number of times a failed connection will be retried
+
 =cut
 
 sub new {
@@ -390,7 +401,7 @@ sub new {
     );
     $ua->agent( "WWW::Gazetteer::HeavensAbove/$VERSION " . $ua->agent );
 
-    bless { ua => $ua }, $class;
+    bless { ua => $ua, retry => 5, @_ }, $class;
 }
 
 =item fetch( $code, $city [, $callback ] )
@@ -474,16 +485,25 @@ sub getpage {
 
     # fill the form and click submit
     $form->find_input('Search')->value($string);
-    my $res = $self->{ua}->request( $form->click );
+    my $res;
+    my $retry = $self->{retry};
+
+    # retry until it works
+    while ( $retry-- ) {
+        $res = $self->{ua}->request( $form->click );
+        last if $res->is_success;
+    }
     croak $res->status_line if not $res->is_success;
 
+    # bad HA code
     my $content = $res->content;
     if ( index( $content, "ADODB.Field" ) != -1 ) {
         $res->request->content =~ /CountryID=(..)/;
         croak "No HA code $1";
     }
 
-    $content =~ s/&nbsp;/ /g;                              # cleanup
+    # check if there were more than 200 answers
+    $content =~ s/&nbsp;/ /g;
     $content =~ /(\d+) towns were found by the search./;
     my $count = $1;
     $count = -1 if index( $content, 'cut-off after 200 towns' ) != -1;
@@ -605,7 +625,7 @@ This module was a script, before I found out about Leon Brocard's
 WWW::Gazetteer module. Thanks! And, erm, bits of the documentation were
 stolen from WWW::Gazetteer.
 
-Thanks to Alain Zalmanski (from http://www.fatrazie.com/) for asking
+Thanks to Alain Zalmanski (of http://www.fatrazie.com/ fame) for asking
 me for all that geographical data in the first place.
 
 =head1 SEE ALSO
