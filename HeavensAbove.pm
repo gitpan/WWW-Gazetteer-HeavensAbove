@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -584,6 +584,7 @@ sub getpage {
         $root->delete;
     }
 
+    # print STDERR "$string -> "; # DEBUG
     # more than 200 answers: compute better hints for next query
     if ( $count == -1 ) {
 
@@ -626,16 +627,20 @@ sub getpage {
 
         # simplest case
         if ( $string =~ y/*// == 1 ) {
-            $string =~ s/[z?]\*/*/i;    # ugly hack, continued
-            _isolatin($string);
-            $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
 
-            # quick and dirty for now
-            $string =~ s/[-'" (,]\*/a*/;
+            # shorten the string
+            $string =~ s/\?\*/*/i;    # ugly hack, continued
+            $string =~ s/z+\*/*/i;
+
+            # next step
+            _isolatin($string);
+            $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;    # classic
+            $string =~ s/[-'" (,]\*/a*/;    # quick and dirty for now
         }
 
         # more difficult cases with several jokers are ignored
     }
+    # print STDERR scalar(@data), $/; #DEBUG
     return ( $string, @data );
 }
 

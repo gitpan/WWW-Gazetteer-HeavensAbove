@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 35;
+use Test::More tests => 36;
 use WWW::Gazetteer::HeavensAbove;
 
 my @cities;
@@ -44,7 +44,13 @@ $g->find( 'buenavista*', 'MX', $cb );
 ok( @cities == 439, "439 cities named 'U*' in Peru" )
   or diag( "Fetched " . @cities . " cities" );
 
-# check the 
+# check the ?* case
 @cities = $g->find( 'San Antonio*', 'MX' );
 ok( @cities == 419, "419 cities named 'San Antonio*' in Mexico" )
   or diag( "Fetched " . @cities . " cities" );
+
+# check the zz* case
+@cities = $g->find( 'Santa cru*', 'MX' );
+ok( @cities == 233, "233 cities named 'San Antonio*' in Mexico" )
+  or diag( "Fetched " . @cities . " cities" );
+

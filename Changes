@@ -1,5 +1,8 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.14 Mon Sep 15 14:12:04 CEST 2003
+        - Bugfix: handle a query string such as zz* correctly
+
 0.13 Mon Sep 15 00:23:11 CEST 2003
         - Bugfix: prevent a foo?* query string to become foo??*
           in the next iteration
