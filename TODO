@@ -1,0 +1,5 @@
+use Locale::Country; # support ISO 3166-1 codes
+
+support callbacks for 200+ requests
+support direct requests
+
