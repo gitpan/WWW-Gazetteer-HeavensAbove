@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.08 Thu Oct 24 13:33:31 CEST 2002
+        - a correct User-Agent string
+        - sleep 3 between retries
+
 0.07  Tue Oct 22 17:43:33 CEST 2002
         - interface change to conform to WWW::Gazetteer's city, country order
         - fetch() becomes find() (but remains)

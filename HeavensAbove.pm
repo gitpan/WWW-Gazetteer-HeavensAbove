@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.07;
+$VERSION = 0.08;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -418,7 +418,7 @@ sub new {
         keep_alive => 1,
         timeout    => 30,
     );
-    $ua->agent( "WWW::Gazetteer::HeavensAbove/$VERSION " . $ua->agent );
+    $ua->agent( "WWW-Gazetteer-HeavensAbove/$VERSION " );
 
     bless { ua => $ua, retry => 5, @_ }, $class;
 }
@@ -524,6 +524,7 @@ sub getpage {
     while ( $retry-- ) {
         $res = $self->{ua}->request( $form->click );
         last if $res->is_success;
+        sleep 3;
     }
     croak $res->status_line if not $res->is_success;
 
