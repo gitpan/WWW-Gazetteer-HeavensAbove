@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -583,14 +583,24 @@ sub getpage {
         # simplest case (scary, heh?)
         if ( $string =~ y/*// == 1 ) {
             my $re = '^' . quotemeta($string) . '$';
+            $re =~ s/\?/./g;
             $re =~ s/([aceidnouy])/$isolatin{lc $1}/ig;
             $re =~ s/\\\*/(.).*/;    # HA's * are greedy, I think
             $data[-1]{name} =~ /$re/i;
             my $last = $string eq '*' ? substr( $data[-1]{name}, 0, 1 ) : $1;
-            $re =~ s/\(\.\)/quotemeta($last)/e;
-            $re = qr/$re/i;
-            pop @data while @data && $data[-1]{name} =~ $re;
-            $string =~ s/\*/$last*/;
+            if ($last) {
+                $re =~ s/\(\.\)/quotemeta($last)/e;
+                $re = qr/$re/i;
+                pop @data while @data && $data[-1]{name} =~ $re;
+                $string =~ s/\*/$last*/;
+            }
+            else {
+                # there are more than 200 Buenavista, MX
+                # and this is an ugly, ugly hack
+                warn "200 identical cities match '$string', "
+                  . "only 200 returned\n";
+                $string =~ s/\*/?*/;
+            }
         }
 
         # more difficult cases with several jokers are ignored
@@ -599,7 +609,7 @@ sub getpage {
 
         # simplest case
         if ( $string =~ y/*// == 1 ) {
-            $string =~ s/z\*/*/i;
+            $string =~ s/[z?]\*/*/i;    # ugly hack, continued
             $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
 
             # quick and dirty for now
@@ -645,6 +655,13 @@ Handle the case where a query with more than one joker (*?) returns
 more than 200 answers. For now, it stops at 200.
 
 =head1 BUGS
+
+There is at least one query that cannot be fulfilled: there are more
+than 200 cities named Buenavista in Mexico. The web site limitation
+of 200 cities per query prevents us to get the other Benavistas in
+Mexico. WWW::Gazetteer::HeavensAbove version 0.11 includes a workaround
+to continues with the global query, and fetch only the first 200
+Buenavistas. (This will work with other similarly broken answers.)
 
 Network errors croak after the maximum retry count has been reached. This
 can be a problem when making big queries (that return more than 200

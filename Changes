@@ -1,5 +1,11 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.11 Sat Sep 13 23:59:56 CEST 2003
+        - Buenavista, MX is a special case: there are 200
+          cities with the same exact name in Mexico.
+          The module now (badly) handles the 200 cities limitation
+          of the web site
+
 0.10 Sat Sep 13 11:46:48 CEST 2003
         - add the iso code attribute
         - the heavens-above database a changed a bit, to one of

@@ -2,6 +2,7 @@
 
 use strict;
 use WWW::Gazetteer::HeavensAbove;
+$|++;
 
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
