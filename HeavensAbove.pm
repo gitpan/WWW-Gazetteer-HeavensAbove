@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.05;
+$VERSION = 0.06;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -349,7 +349,7 @@ A city tructure looks like this:
      regionname => 'Region',
      region     => 'Rhône-Alpes',
      alias      => 'Les Paris',
-     elevation  => '508 m',
+     elevation  => '508',            # meters
      longitude  => '5.733',
      name       => 'Paris',
  };
@@ -369,7 +369,7 @@ Here is an example of an American city:
      region     => 'Missouri',
      county     => 'Caldwell',    # this is only for US cities
      alias      => '',
-     elevation  => '244 m',
+     elevation  => '244',
      longitude  => '-93.927',
      name       => 'New York'
  };
@@ -385,7 +385,7 @@ Return a new WWW::Gazetteer::UserAgent, ready to fetch() cities for you.
 The constructor can be given a list of parameters.
 Currently supported parameters are :
 
-C<ua   > - the LWP::UserAgent used for the web requests
+C<ua> - the LWP::UserAgent used for the web requests
 
 C<retry> - the number of times a failed connection will be retried
 
@@ -413,6 +413,11 @@ This method always returns an array of city structures. If the request
 returns a lot of cities, you can pass a callback routine to fetch().
 This routine receives the list of city structures as @_. If a callback
 method is given to fetch(), fetch() will return an empty list.
+
+A single call to fetch() can lead to several web requests. If the
+query returns more than 200 answeris, heavens-above.com cuts at 200.
+WWW::Gazetteer::HeavensAbove picks as many data as possible from this
+first answer and then refines the query again and again.
 
 Here's an excerpt from heavens-above.com documentation: 
 
@@ -468,9 +473,11 @@ sub query {
     my @data;
     do {
 
+        #print STDERR $string, ' ';
         # $string now holds the next request (if necessary)
         ( $string, my @list ) = $self->getpage( $form, $string );
 
+        #print STDERR scalar @list, $/;
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
 
@@ -509,44 +516,47 @@ sub getpage {
     $count = -1 if index( $content, 'cut-off after 200 towns' ) != -1;
 
     # parse the data
-    my $root = HTML::TreeBuilder->new_from_content($content);
-    my @rows =
-      ( $root->look_down( _tag => 'table' ) )[2]->look_down( _tag => 'tr' );
-
-    # handle the region name
-    my $regionname = shift @rows;
-    my $county;
-    $county     = ( $regionname->content_list )[2]->as_trimmed_text eq "County";
-    $regionname = ( $regionname->content_list )[1]->as_trimmed_text;
-
-    # fetch and process the data for each line
     my @data;
-    for (@rows) {
-        my $town = { regionname => $regionname, alias => '' };
-        @$town{qw( name region county latitude longitude elevation )} =
-          ( map { $_->as_trimmed_text } $_->content_list )[ 0, 1, -5 .. -2 ];
-        delete $town->{county} if not $county;    # county is only for US
-        $town->{alias} = $1 if $town->{name} =~ s/\(alias for (.*?)\)//;
-        push @data, $town;
-    }
+    {
+        my $root = HTML::TreeBuilder->new_from_content($content);
+        my @rows =
+          ( $root->look_down( _tag => 'table' ) )[2]->look_down( _tag => 'tr' );
 
-    # clear off the tree
-    @rows = ();
-    $root->delete;
+        # handle the region name
+        my $header = shift @rows;
+        my @headers = map { lc $_->as_trimmed_text } $header->content_list;
+        my $regionname;
+        ( $regionname, $headers[1] ) = ( $headers[1], 'region' )
+          if ( @headers >= 5 );
+
+        # fetch and process the data for each line
+        for (@rows) {
+            my $town =
+              { regionname => $regionname || '', alias => '', region => '' };
+            @$town{@headers} = map { $_->as_trimmed_text } $_->content_list;
+            $town->{alias} = $1 if $town->{name} =~ s/\(alias for (.*?)\)//;
+            $town->{elevation} =~ s/ m$//;
+            push @data, $town;
+        }
+
+        # clear off the tree
+        ( $header, @rows ) = ();
+        $root->delete;
+    }
 
     # more than 200 answers: compute better hints for next query
     if ( $count == -1 ) {
 
-        # simplest case
+        # simplest case (scary, heh?)
         if ( $string =~ y/*// == 1 ) {
-            my $re = "^$string\$";
+            my $re = '^' . quotemeta($string) . '$';
             $re =~ s/([aceidnouy])/$isolatin{lc $1}/ig;
-            $re =~ s/\*/(.).*/;    # HA's * are greedy, I think
+            $re =~ s/\\\*/(.).*/;    # HA's * are greedy, I think
             $data[-1]{name} =~ /$re/i;
-            my $last = $1;
-            $re =~ s/\(.\)/$last/;
+            my $last = $string eq '*' ? substr( $data[-1]{name}, 0, 1 ) : $1;
+            $re =~ s/\(\.\)/quotemeta($last)/e;
             $re = qr/$re/i;
-            pop @data while $data[-1]{name} =~ $re;
+            pop @data while @data && $data[-1]{name} =~ $re;
             $string =~ s/\*/$last*/;
         }
 
@@ -558,6 +568,7 @@ sub getpage {
         if ( $string =~ y/*// == 1 ) {
             $string =~ s/z\*/*/i;
             $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
+            $string =~ s/[-'" (,]\*/a*/; # quick and dirty for now
         }
 
         # more difficult cases with several jokers are ignored
@@ -602,12 +613,12 @@ Find an appropriate interface with Leon, and adhere to it.
 
 =head1 BUGS
 
-Network errors croak. This can be a problem when making big queries
-(that return more than 200 answers) which results are passed to a
-callback, because part of the data has been already processed by
-the callback when the script dies. And even if you can catch the exception,
-you cannot easily guess where to start again. Maybe a retry parameter
-could help a little.
+Network errors croak after the maximum retry count has been reached. This
+can be a problem when making big queries (that return more than 200
+answers) which results are passed to a callback, because part of the data
+has been already processed by the callback when the script dies. And
+even if you can catch the exception, you cannot easily guess where to
+start again.
 
 Bugs in the database are not from heavens-above.com, since they
 "put together and enhanced" data from the following two sources:

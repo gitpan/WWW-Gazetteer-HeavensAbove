@@ -1,5 +1,10 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.06  
+        - the query '*' now works correctly
+        - some countries do not have a 'region' field at all
+        - elevation is simple number, in meters ('508 m' => 508)
+        
 0.05  Thu Oct 17 14:40:22 CEST 2002
         - allow a broken connection to be retried (default 5)
         - new() accept arguments to override defaults

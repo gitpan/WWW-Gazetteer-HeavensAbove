@@ -13,10 +13,10 @@ is_deeply(
     $cities[0],
     {
         latitude   => '51.517',
-        regionname => 'County',
+        regionname => 'county',
         region     => 'Greater London',
         alias      => '',
-        elevation  => '18 m',
+        elevation  => '18',
         longitude  => '-0.105',
         name       => 'London'
     },
@@ -36,10 +36,10 @@ is_deeply(
     $cities[0],
     {
         latitude   => '45.633',
-        regionname => 'Region',
+        regionname => 'region',
         region     => 'Rhône-Alpes',
         alias      => 'Les Paris',
-        elevation  => '508 m',
+        elevation  => '508',
         longitude  => '5.733',
         name       => 'Paris'
     },
@@ -50,10 +50,10 @@ is_deeply(
     $cities[1],
     {
         latitude   => '48.867',
-        regionname => 'Region',
+        regionname => 'region',
         region     => 'Île-de-France',
         alias      => '',
-        elevation  => '34 m',
+        elevation  => '34',
         longitude  => '2.333',
         name       => 'Paris'
     },
@@ -68,11 +68,11 @@ is_deeply(
     $cities[0],
     {
         latitude   => '39.685',
-        regionname => 'State',
+        regionname => 'state',
         region     => 'Missouri',
         county     => 'Caldwell',
         alias      => '',
-        elevation  => '244 m',
+        elevation  => '244',
         longitude  => '-93.927',
         name       => 'New York'
     },

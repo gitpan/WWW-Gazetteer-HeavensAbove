@@ -20,19 +20,19 @@ ok( @cities == 0, 'Data processed: nothing remains' );
 my @tests = (
     {
         'latitude'   => '46.633',
-        'regionname' => 'Region',
+        'regionname' => 'region',
         'region'     => 'Rhône-Alpes',
         'alias'      => 'Les Paris',
-        'elevation'  => '508 m',
+        'elevation'  => '508',
         'longitude'  => '5.733',
         'name'       => 'Paris'
     },
     {
         'latitude'   => '49.867',
-        'regionname' => 'Region',
+        'regionname' => 'region',
         'region'     => 'Île-de-France',
         'alias'      => '',
-        'elevation'  => '34 m',
+        'elevation'  => '34',
         'longitude'  => '2.333',
         'name'       => 'Paris'
     }

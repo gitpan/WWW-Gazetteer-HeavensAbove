@@ -1,11 +1,11 @@
 use strict;
-use Test::More tests => 19;
+use Test::More tests => 31;
 use WWW::Gazetteer::HeavensAbove;
 
 my @cities;
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
-diag("Be patient... this test suite is very long (49 web requests)");
+diag("Be patient... this test suite is very long (61 web requests)");
 
 # star at the beginning (9 web requests)
 @cities = $g->fetch( UY => '*s' );
@@ -30,3 +30,7 @@ ok( @cities == 424, "424 cities named 'A*A' in Colombia" )
 @cities = $g->fetch( MX => 'Agua *' );
 ok( @cities == 444, "444 cities named 'Agua *' in Mexico" )
   or diag( "Fetched " . @cities . " cities" );
+
+# test for the biggest possible request on a country (12 web requests)
+@counts = ( 189, 57, 0, 11, 2, 78, 6, 23, 0, 0, 0, 0 );
+$g->fetch( PF => '*', $cb );
