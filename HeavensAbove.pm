@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.14';
+$VERSION = '0.15';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -512,7 +512,7 @@ sub query {
     do {
 
         # $string now holds the next request (if necessary)
-        ( $string, my @list ) = $self->getpage( $form, $string, $iso );
+        ( $string, my @list ) = $self->_getpage( $form, $string, $iso );
 
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
@@ -523,7 +523,7 @@ sub query {
 }
 
 # this is a private method
-sub getpage {
+sub _getpage {
     my ( $self, $form, $string, $iso ) = @_;
 
     # fill the form and click submit
@@ -672,19 +672,49 @@ An example callback is (from F<eg/city.pl>):
 Please note that, due to the nature of the queries, your callback
 can (and will most probably) be called with an empty @_.
 
+=head1 ALGORITHM
+
+The web site returns only the first 200 answers to any query.
+To handle huge requests like '*' (the biggest possible),
+WWW::Gazetteer::HeavensAbove splits the requests in several parts.
+
+Example, looking for C<pa*> in France:
+
+=over 4
+
+=item C<pa*> returns more than 200 answers, the last ones being:
+
+    195 Paques, Rhône-Alpes
+    196 Paquier, Rhône-Alpes
+    197 Paradiso, Corse
+    198 Paradou, Provence-Alpes-Côte d'Azur
+    199 Paraise, Bourgogne
+    200 Paraize (Paraise), Bourgogne
+
+The algorithm keeps the 196 first ones, because they match <pa*> and 
+not C<par*> (C<r> is the first character matched by C<*> in the
+last city matched).
+
+=item The next sub-query is computed as C<par*> (176 cities)
+
+It is followed by C<pas*> (64), C<pat*> (12), C<pau*> (44), C<pav*>
+(11), C<paw*> (0), C<pay*> (18) and C<paz*> (5).
+
+=back
+
+There is at least one query that cannot be completely fulfilled:
+there are more than 200 cities named Buenavista in Mexico. The web site
+limitation of 200 cities per query prevents us to get the other Benavistas
+in Mexico. WWW::Gazetteer::HeavensAbove as of version 0.11 includes a
+workaround to continues with the global query, and fetch only the first
+200 Buenavistas. (This will work with other similarly broken answers.)
+
 =head1 TODO
 
 Handle the case where a query with more than one joker (*?) returns
 more than 200 answers. For now, it stops at 200.
 
 =head1 BUGS
-
-There is at least one query that cannot be fulfilled: there are more
-than 200 cities named Buenavista in Mexico. The web site limitation
-of 200 cities per query prevents us to get the other Benavistas in
-Mexico. WWW::Gazetteer::HeavensAbove version 0.11 includes a workaround
-to continues with the global query, and fetch only the first 200
-Buenavistas. (This will work with other similarly broken answers.)
 
 Network errors croak after the maximum retry count has been reached. This
 can be a problem when making big queries (that return more than 200

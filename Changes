@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.15 Mon Mar 28 16:08:17 CEST 2005
+        - the sub-query algorithm is explained
+        - tests for pod and pod coverage
+
 0.14 Mon Sep 15 14:12:04 CEST 2003
         - Bugfix: handle a query string such as zz* correctly
 
