@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -232,7 +232,7 @@ my %iso = (
         'WE' => 'WEST BANK',
       );
 
-# ISO 3166 codes not used yet
+# ISO 3166 codes not used yet or countries not in HA
 %iso = (
          'IO' => 'BRITISH INDIAN OCEAN TERRITORY',
          'BV' => 'BOUVET ISLAND',
@@ -305,30 +305,38 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
  my $atlas = WWW::Gazetteer::HeavensAbove->new;
 
  # simple query using ISO 3166 codes
- my @towns = $atlas->fetch( GB => 'Bacton' );
+ my @towns = $atlas->find( 'Bacton', 'GB' );
  print $_->{name}, ", ", $_->{elevation}, $/ for @towns;
 
  # simple query using heavens-above.com codes
- my @towns = $atlas->query( UK => 'Bacton' );
+ my @towns = $atlas->query( 'Bacton', 'UK' );
  print $_->{name}, ", ", $_->{elevation}, $/ for @towns;
 
  # big queries can use a callback (and return nothing)
- $atlas->fetch(
-     GB => 'Bacton',
+ $atlas->find(
+     'Bacton', 'GB',
      sub { print $_->{name}, ", ", $_->{elevation}, $/ for @_ }
  );
 
+ # find() returns an arrayref in scalar context
+ $cities = $atlas->find( 'Paris', 'FR' );
+ print $cities->[1]{name};
+
  # the heavens-above.com site supports complicated queries
- my @az = $atlas->fetch( FR => 'a*z' );
+ my @az = $atlas->find( 'a*z', 'FR' );
 
  # and you can naturally use callbacks for those!
  my ($c, n);
- $atlas->fetch( US => 'N*', sub { $c++; $n += @_ }  );
- print "$c web requests for fetching $n cities";
+ $atlas->find( 'N*', 'US', sub { $c++; $n += @_ }  );
+ print "$c web requests needed for finding $n cities";
 
  # or use your own UserAgent
  my $ua = LWP::UserAgent->new;
  $atlas = WWW::Gazetteer::HeavensAbove->new( ua => $ua );
+
+ # another way to create a new object
+ use WWW::Gazetteer;
+ my $g = WWW::Gazetteer->new('HeavensAbove');
 
 =head1 DESCRIPTION
 
@@ -338,7 +346,7 @@ http://www.heavens-above.com/countries.asp to return geographical location
 (longitude, latitude, elevation) for towns and cities in countries in the
 world.
 
-Once a WWW::Gazetteer::HeavensAbove objects is created, use the fetch()
+Once a WWW::Gazetteer::HeavensAbove objects is created, use the find()
 method to return lists of hashrefs holding all the information for the
 matching cities.
 
@@ -380,7 +388,7 @@ Here is an example of an American city:
 
 =item new()
 
-Return a new WWW::Gazetteer::UserAgent, ready to fetch() cities for you.
+Return a new WWW::Gazetteer::UserAgent, ready to find() cities for you.
 
 The constructor can be given a list of parameters.
 Currently supported parameters are :
@@ -388,6 +396,17 @@ Currently supported parameters are :
 C<ua> - the LWP::UserAgent used for the web requests
 
 C<retry> - the number of times a failed connection will be retried
+
+You can also use the generic WWW::Gazetteer module to create a new
+WWW::Gazetteer::HeavenAbove object:
+
+ use WWW::Gazetteer;
+ my $g = WWW::Gazetteer->new('HeavensAbove');
+
+You can also pass it inialisation parameters:
+
+ use WWW::Gazetteer;
+ my $g = WWW::Gazetteer->new('HeavensAbove',  retry => 3);
 
 =cut
 
@@ -404,17 +423,17 @@ sub new {
     bless { ua => $ua, retry => 5, @_ }, $class;
 }
 
-=item fetch( $code, $city [, $callback ] )
+=item find( $city, $country [, $callback ] )
 
 Return a list of cities matching $city, within the country with ISO 3166
 code $code (not all codes are supported by heavens-above.com).
 
 This method always returns an array of city structures. If the request
-returns a lot of cities, you can pass a callback routine to fetch().
+returns a lot of cities, you can pass a callback routine to find().
 This routine receives the list of city structures as @_. If a callback
-method is given to fetch(), fetch() will return an empty list.
+method is given to find(), find() will return an empty list.
 
-A single call to fetch() can lead to several web requests. If the
+A single call to find() can lead to several web requests. If the
 query returns more than 200 answeris, heavens-above.com cuts at 200.
 WWW::Gazetteer::HeavensAbove picks as many data as possible from this
 first answer and then refines the query again and again.
@@ -444,15 +463,23 @@ method. (And read the source for the full list of HA codes.)
 
 =cut
 
-sub fetch {
-    my ( $self, $iso ) = ( shift, uc shift );
+sub find {
+    my ( $self, $query, $iso ) = ( shift, shift, uc shift );
     croak "No HA code for $iso ISO code" if !exists $iso{$iso};
-    return $self->query( $iso{$iso}, @_ );
+    return $self->query( $query, $iso{$iso}, @_ );
 }
 
-=item query( $code, $searchstring [, $callback ] );
+=item fetch( $searchstring, $code [, $callback ] );
 
-This method is the actual method called by fetch().
+fetch() is a synonym for find(). It is kept for backward compatibility.
+
+=cut
+
+*WWW::Gazetteer::HeavensAbove::fetch = \&find;
+
+=item query( $searchstring, $code [, $callback ] );
+
+This method is the actual method called by find().
 
 The only difference is that $code is the heavens-above.com specific
 country code, instead of the ISO 3166 code.
@@ -460,7 +487,7 @@ country code, instead of the ISO 3166 code.
 =cut
 
 sub query {
-    my ( $self, $code, $query, $callback ) = @_;
+    my ( $self, $query, $code, $callback ) = @_;
     $code = uc $code;
 
     my $url = $base . "selecttown.asp?CountryID=$code&loc=Unspecified";
@@ -473,17 +500,15 @@ sub query {
     my @data;
     do {
 
-        #print STDERR $string, ' ';
         # $string now holds the next request (if necessary)
         ( $string, my @list ) = $self->getpage( $form, $string );
 
-        #print STDERR scalar @list, $/;
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
 
     } while ( length($query) < length($string) );
 
-    return @data;
+    return wantarray ? @data : \@data;
 }
 
 # this is a private method
@@ -568,7 +593,9 @@ sub getpage {
         if ( $string =~ y/*// == 1 ) {
             $string =~ s/z\*/*/i;
             $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
-            $string =~ s/[-'" (,]\*/a*/; # quick and dirty for now
+
+            # quick and dirty for now
+            $string =~ s/[-'" (,]\*/a*/;
         }
 
         # more difficult cases with several jokers are ignored
@@ -580,7 +607,7 @@ sub getpage {
 
 =head2 Callbacks
 
-The fetch() and query() methods both accept a optionnal coderef as
+The find() and query() methods both accept a optionnal coderef as
 their third argument. This method is used as a callback each time a
 batch of cities is returned by a web query to heavens-above.com.
 
@@ -590,7 +617,7 @@ that return a smaller number of answers. The callback is called with
 the results of the subquery after each web request.
 
 This method is called in void context, and is passed a list of
-hashrefs (the cities fetched by the last query).
+hashrefs (the cities found by the last query).
 
 An example callback is (from F<eg/city.pl>):
 
@@ -608,8 +635,6 @@ can (and will most probably) be called with an empty @_.
 
 Handle the case where a query with more than one joker (*?) returns
 more than 200 answers. For now, it stops at 200.
-
-Find an appropriate interface with Leon, and adhere to it.
 
 =head1 BUGS
 
@@ -645,7 +670,7 @@ me for all that geographical data in the first place.
 lightning talks at YAPC::Europe 2002 (Munich). Slides will be online
 someday.
 
-WWW::Gazetteer, the original, by Leon Brocard.
+WWW::Gazetteer and WWW::Gazetteer::Calle, by Leon Brocard.
 
 The use Perl discussion that had me write this module from the original
 script: http://use.perl.org/~acme/journal/8079

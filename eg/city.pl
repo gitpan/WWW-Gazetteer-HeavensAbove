@@ -5,8 +5,9 @@ use WWW::Gazetteer::HeavensAbove;
 
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
+my $city = shift;
 my $code = uc shift;
-my $cb = sub {
+my $cb   = sub {
     local $, = "\t";
     local $\ = $/;
     my @fields = qw(name alias region latitude longitude elevation);
@@ -18,5 +19,5 @@ print "# name\talias\tregion\t"
   . ( $code eq 'US' ? "county\t" : "" )
   . "latitude\tlongitude\televation\n";
 
-$g->fetch( $code, shift, $cb );
+$g->find( $city, $code, $cb );
 

@@ -8,5 +8,5 @@ t/00basic.t
 t/10new.t
 t/20query.t
 t/30fetch.t
-t/40big.t
-t/50callback.t
+t/40callback.t
+t/50big.t

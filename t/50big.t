@@ -8,7 +8,7 @@ my $g = WWW::Gazetteer::HeavensAbove->new;
 diag("Be patient... this test suite is very long (61 web requests)");
 
 # star at the beginning (9 web requests)
-@cities = $g->fetch( UY => '*s' );
+@cities = $g->find( '*s', 'UY' );
 ok( @cities == 231, "231 cities named '*s' in Uruguay" )
   or diag( "Fetched " . @cities . " cities" );
 
@@ -18,19 +18,19 @@ my $cb = sub {
     my $c = shift @counts;
 
     # check each request is okay
-    ok( @_ == $c, "$c town(s) fetched" ) or diag( "got " . @_ . "/$c" );
+    ok( @_ == $c, "$c town(s) found" ) or diag( "got " . @_ . "/$c" );
     push @cities, @_;
 };
 @cities = ();
-$g->fetch( CO => 'A*A', $cb );
+$g->find( 'A*A', 'CO', $cb );
 ok( @cities == 424, "424 cities named 'A*A' in Colombia" )
   or diag( "Fetched " . @cities . " cities" );
 
 # star at the end (24 web requests)
-@cities = $g->fetch( MX => 'Agua *' );
+@cities = $g->find( 'Agua *', 'MX' );
 ok( @cities == 444, "444 cities named 'Agua *' in Mexico" )
   or diag( "Fetched " . @cities . " cities" );
 
 # test for the biggest possible request on a country (12 web requests)
 @counts = ( 189, 57, 0, 11, 2, 78, 6, 23, 0, 0, 0, 0 );
-$g->fetch( PF => '*', $cb );
+$g->find( '*', 'PF', $cb );

@@ -1,6 +1,12 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
-0.06  
+0.07  Tue Oct 22 17:43:33 CEST 2002
+        - interface change to conform to WWW::Gazetteer's city, country order
+        - fetch() becomes find() (but remains)
+        - should be compatible with WWW::Gazetteer 0.20
+        - find() and friends return an arrayref in scalar context
+
+0.06  Tue Oct 19 11:40:43 CEST 2002
         - the query '*' now works correctly
         - some countries do not have a 'region' field at all
         - elevation is simple number, in meters ('508 m' => 508)
