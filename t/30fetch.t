@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 8;
 use WWW::Gazetteer::HeavensAbove;
 
 my $g = WWW::Gazetteer::HeavensAbove->new;
@@ -12,21 +12,19 @@ ok( @cities == 1, 'Number of cities named London in GB' );
 is_deeply(
     $cities[0],
     {
-        'latitude'   => '51.517',
-        'regionname' => 'County',
-        'region'     => 'Greater London',
-        'alias'      => '',
-        'elevation'  => '18 m',
-        'longitude'  => '-0.105',
-        'name'       => 'London'
+        latitude   => '51.517',
+        regionname => 'County',
+        region     => 'Greater London',
+        alias      => '',
+        elevation  => '18 m',
+        longitude  => '-0.105',
+        name       => 'London'
     },
     "London, GB"
 );
 
 # non-existant code
-eval {
-    $g->fetch( 'ZZ', 'foo' );
-};
+eval { $g->fetch( 'ZZ', 'foo' ); };
 like( $@, qr/No HA code for ZZ ISO code/, 'Invalid code' );
 
 # more cities
@@ -34,27 +32,50 @@ like( $@, qr/No HA code for ZZ ISO code/, 'Invalid code' );
 
 ok( @cities == 2, 'Number of cities named Paris' );
 
-is_deeply( $cities[0], 
-          {
-            'latitude' => '45.633',
-            'regionname' => 'Region',
-            'region' => 'Rhône-Alpes',
-            'alias' => 'Les Paris',
-            'elevation' => '508 m',
-            'longitude' => '5.733',
-            'name' => 'Paris'
-          },
-          'Les Paris');
+is_deeply(
+    $cities[0],
+    {
+        latitude   => '45.633',
+        regionname => 'Region',
+        region     => 'Rhône-Alpes',
+        alias      => 'Les Paris',
+        elevation  => '508 m',
+        longitude  => '5.733',
+        name       => 'Paris'
+    },
+    'Les Paris'
+);
 
-is_deeply( $cities[1],
-          {
-            'latitude' => '48.867',
-            'regionname' => 'Region',
-            'region' => 'Île-de-France',
-            'alias' => '',
-            'elevation' => '34 m',
-            'longitude' => '2.333',
-            'name' => 'Paris'
-          },
-          'Paris');
+is_deeply(
+    $cities[1],
+    {
+        latitude   => '48.867',
+        regionname => 'Region',
+        region     => 'Île-de-France',
+        alias      => '',
+        elevation  => '34 m',
+        longitude  => '2.333',
+        name       => 'Paris'
+    },
+    'Paris'
+);
+
+# the US are special
+@cities = $g->fetch( 'US', 'New york' );
+ok( @cities == 7, 'New York, US' );
+
+is_deeply(
+    $cities[0],
+    {
+        latitude   => '39.685',
+        regionname => 'State',
+        region     => 'Missouri',
+        county     => 'Caldwell',
+        alias      => '',
+        elevation  => '244 m',
+        longitude  => '-93.927',
+        name       => 'New York'
+    },
+    'New York, Missouri'
+);
 

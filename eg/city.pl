@@ -6,14 +6,9 @@ use WWW::Gazetteer::HeavensAbove;
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
 my $cb = sub {
-    for (@_) {
-        print join (
-            "\t", @$_{
-            qw( name alias region latitude longitude elevation )
-            }
-          ),
-          "\n";
-    }
+    local $, = "\t";
+    local $\ = $/;
+    print @$_{qw(name alias region latitude longitude elevation)} for @_;
 };
 
 print "# name\talias\tregion\tlatitude\tlongitude\televation\n";

@@ -1,8 +1,12 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.03  Wed Oct 16 12:19:29 CEST 2002
+        - correct the city structure for the US cities (county)
+        - more documentation (callbacks)
+
 0.02  Wed Oct 16 00:57:44 CEST 2002
         - handle network errors (croak)
-	- a simple example script: eg/city.pl
+        - a simple example script: eg/city.pl
 
 0.01  Tue Oct 15 16:12:16 CEST 2002
         - first published version
