@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.09;
+$VERSION = '0.10';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -353,6 +353,7 @@ matching cities.
 A city tructure looks like this:
 
  $lesparis = {
+     iso        => 'FR',
      latitude   => '45.633',
      regionname => 'Region',
      region     => 'Rhône-Alpes',
@@ -372,6 +373,7 @@ and a special field named C<county> holds the county name.
 Here is an example of an American city:
 
  $newyork = {
+     iso        => 'US',
      latitude   => '39.685',
      regionname => 'State',
      region     => 'Missouri',
@@ -489,6 +491,8 @@ country code, instead of the ISO 3166 code.
 sub query {
     my ( $self, $query, $code, $callback ) = @_;
     $code = uc $code;
+    my $iso;
+    for ( keys %iso ) { $iso = $_, last if $iso{$_} eq $code }
 
     my $url = $base . "selecttown.asp?CountryID=$code&loc=Unspecified";
     my $res = $self->{ua}->request( HTTP::Request->new( GET => $url ) );
@@ -501,7 +505,7 @@ sub query {
     do {
 
         # $string now holds the next request (if necessary)
-        ( $string, my @list ) = $self->getpage( $form, $string );
+        ( $string, my @list ) = $self->getpage( $form, $string, $iso );
 
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
@@ -513,7 +517,7 @@ sub query {
 
 # this is a private method
 sub getpage {
-    my ( $self, $form, $string ) = @_;
+    my ( $self, $form, $string, $iso ) = @_;
 
     # fill the form and click submit
     $form->find_input('Search')->value($string);
@@ -564,6 +568,7 @@ sub getpage {
             @$town{@headers} = map { $_->as_trimmed_text } $_->content_list;
             $town->{alias} = $1 if $town->{name} =~ s/\(alias for (.*?)\)//;
             $town->{elevation} =~ s/ m$//;
+            $town->{iso} = $iso;
             push @data, $town;
         }
 
@@ -670,8 +675,7 @@ me for all that geographical data in the first place.
 =head1 SEE ALSO
 
 "How I captured thousands of Afghan cities in a few hours", one of my
-lightning talks at YAPC::Europe 2002 (Munich). Slides will be online
-someday.
+lightning talks at YAPC::Europe 2002 (Munich). You had to be there.
 
 WWW::Gazetteer and WWW::Gazetteer::Calle, by Leon Brocard.
 

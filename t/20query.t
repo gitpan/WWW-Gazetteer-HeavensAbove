@@ -10,6 +10,7 @@ my @cities;
 
 ok( @cities == 1, 'Number of cities named London in UK' );
 my $london = {
+    'iso'        => 'GB',
     'latitude'   => '51.517',
     'regionname' => 'county',
     'region'     => 'Greater London',
@@ -30,6 +31,7 @@ is_deeply( $cities[0], $london, "london, uk" );
 @cities = $g->query( 'Mazar*i*f', 'AF' );
 my @tests = (
     {
+        'iso'        => 'AF',
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
@@ -39,6 +41,7 @@ my @tests = (
         'name'       => 'Mazar-e Sharif'
     },
     {
+        'iso'        => 'AF',
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
@@ -48,6 +51,7 @@ my @tests = (
         'name'       => 'Mazar-i-Sharif'
     },
     {
+        'iso'        => 'AF',
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
@@ -70,6 +74,7 @@ ok( @cities == 1, "Fitii, French Polynesia" );
 is_deeply(
     $cities[0],
     {
+        iso        => 'PF',
         latitude   => -16.733,
         longitude  => -151.033,
         elevation  => 77,

@@ -3,7 +3,7 @@ WriteMakefile(
     NAME         => 'WWW::Gazetteer::HeavensAbove',
     VERSION_FROM => 'HeavensAbove.pm',
     PREREQ_PM    => {
-        'HTML::TreeBuilder' => 3,
+        'HTML::TreeBuilder' => 3.13,
         'HTML::Form'        => 0,
         'LWP::UserAgent'    => 2,
         'Test::More'        => 0,

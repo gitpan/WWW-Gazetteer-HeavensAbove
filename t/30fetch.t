@@ -12,6 +12,7 @@ ok( @cities == 1, 'Number of cities named London in GB' );
 is_deeply(
     $cities[0],
     {
+        iso        => 'GB',
         latitude   => '51.517',
         regionname => 'county',
         region     => 'Greater London',
@@ -35,6 +36,7 @@ ok( @cities == 2, 'Number of cities named Paris' );
 is_deeply(
     $cities[0],
     {
+        iso        => 'FR',
         latitude   => '45.633',
         regionname => 'region',
         region     => 'Rhône-Alpes',
@@ -49,6 +51,7 @@ is_deeply(
 is_deeply(
     $cities[1],
     {
+        iso        => 'FR',
         latitude   => '48.867',
         regionname => 'region',
         region     => 'Île-de-France',
@@ -65,8 +68,9 @@ is_deeply(
 ok( @cities == 7, 'New York, US' );
 
 is_deeply(
-    $cities[0],
+    $cities[6],
     {
+        iso        => 'US',
         latitude   => '39.685',
         regionname => 'state',
         region     => 'Missouri',

@@ -1,5 +1,10 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.10 Sat Sep 13 11:46:48 CEST 2003
+        - add the iso code attribute
+        - the heavens-above database a changed a bit, to one of
+          the tests had to be changed
+
 0.09 Fri Feb  7 00:49:49 CET 2003
         - The heavensabove.com now gives a 500 error when
           a non-existing country code is used

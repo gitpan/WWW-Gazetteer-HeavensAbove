@@ -19,6 +19,7 @@ my $callback = sub {
 ok( @cities == 0, 'Data processed: nothing remains' );
 my @tests = (
     {
+        'iso'        => 'FR',
         'latitude'   => '46.633',
         'regionname' => 'region',
         'region'     => 'Rhône-Alpes',
@@ -28,6 +29,7 @@ my @tests = (
         'name'       => 'Paris'
     },
     {
+        'iso'        => 'FR',
         'latitude'   => '49.867',
         'regionname' => 'region',
         'region'     => 'Île-de-France',
