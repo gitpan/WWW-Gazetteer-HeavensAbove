@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -330,6 +330,9 @@ A city tructure looks like this:
      'name'       => 'Paris',
  };
  
+Note: the 'regioname' attribute is the local name of a region (this can
+change from country to country).
+
 =head2 Methods
 
 =over 4
@@ -391,11 +394,10 @@ sub query {
       . "selecttown.asp?CountryID=$code&lat=0&lng=0&alt=0&loc=Unspecified&TZ=CET";
 
     #. "selecttown.asp?CountryID=$id&loc=Unspecified";
-    my $rep = $self->{ua}->request( HTTP::Request->new( GET => $url ) );
+    my $res = $self->{ua}->request( HTTP::Request->new( GET => $url ) );
+    croak $res->status_line if not $res->is_success;
 
-    # TODO error checking
-
-    my $form = HTML::Form->parse( $rep->content, $base );
+    my $form = HTML::Form->parse( $res->content, $base );
 
     my $string = $query;
     my @data;
@@ -418,8 +420,7 @@ sub getpage {
     # fill the form and click submit
     $form->find_input('Search')->value( $string );
     my $res = $self->{ua}->request( $form->click );
-
-    # TODO Error checking - $res
+    croak $res->status_line if not $res->is_success;
 
     my $content = $res->content;
     if ( index( $content, "ADODB.Field" ) != -1 ) {
@@ -456,6 +457,9 @@ sub getpage {
         # TODO
         # find the first ones and store them
         # and modify $string
+        # 1) easy: "str" and "str*"
+        # 2) not difficult: "st*r" (one star)
+        # 3) difficult: several jokers
     }
     return ( $string, @data );
 }
@@ -469,15 +473,17 @@ answers (stops at the 200 firsts for the moment).
 
 Better network errors handling.
 
-Find an appropriate interface with Léon, and adhere to it.
+Find an appropriate interface with Leon, and adhere to it.
 
 =head1 BUGS
 
-Probably.
+WWW::Gazetteer::HeavensAbove does not work correctly yes with the US,
+since the database returns State and County. I suppose this is the only
+country that behaves this way, due to the way the database was created.
 
-Bugs in the database are not from heavens-above.com. They "put
-together and enhanced" data from the following two sources: US
-Geological Survey (http://geonames.usgs.gov/index.html) for the
+Bugs in the database are not from heavens-above.com, since they
+"put together and enhanced" data from the following two sources:
+US Geological Survey (http://geonames.usgs.gov/index.html) for the
 USA and dependencies, and The National Imaging and Mapping Agency
 (http://www.nima.mil/gns/html/index.html) for all other countries.
 
@@ -487,7 +493,7 @@ See also: http://www.heavens-above.com/ShowFAQ.asp?FAQID=100
 
 Philippe "BooK" Bruhat E<lt>book@cpan.orgE<gt>.
 
-This module was a script, before I found out about Léon Brocard's
+This module was a script, before I found out about Leon Brocard's
 WWW::Gazetteer module. Thanks! And, erm, bits of the documentation were
 stolen from WWW::Gazetteer.
 
