@@ -1,5 +1,10 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.04  Thu Oct 17 09:07:01 CEST 2002
+        - handle requests with 200+ answers, that use a single *
+        - correct PREREQ_PM (HTML::TreeBuilder, HTML::Form)
+        - eg/city.pl now prints the county for US cities
+
 0.03  Wed Oct 16 12:19:29 CEST 2002
         - correct the city structure for the US cities (county)
         - more documentation (callbacks)

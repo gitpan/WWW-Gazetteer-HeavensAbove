@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -278,6 +278,20 @@ my %iso = (
 
 =end codes
 
+=cut
+
+my %isolatin = (
+    a => '[AaÀÁÂÃÄÅàáâãäå]',
+    c => '[CcÇç]',
+    e => '[EeÈÉÊËèéêë]',
+    i => '[IiÌÍÎÏìíîï]',
+    d => '[DdÐð]',
+    n => '[NnÑñ]',
+    o => '[OoÒÓÔÕÖØòóôõöø]',
+    u => '[UuÙÚÛÜùúûü]',
+    y => '[YyÝýÿ]',
+);
+
 =pod
 
 =head1 NAME
@@ -306,6 +320,11 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
 
  # the heavens-above.com site supports complicated queries
  my @az = $atlas->fetch( FR => 'a*z' );
+
+ # and you can naturally use callbacks for those!
+ my ($c, n);
+ $atlas->fetch( US => 'N*', sub { $c++; $n += @_ }  );
+ print "$c web requests for fetching $n cities";
 
 =head1 DESCRIPTION
 
@@ -338,7 +357,7 @@ Due to the way heavens-above.com's database was created, cities from the
 U.S.A. are handled as a special case. The C<region> field is the state,
 and a special field named C<county> holds the county name.
 
-An example of an American city:
+Here is an example of an American city:
 
  $newyork = {
      latitude   => '39.685',
@@ -384,6 +403,25 @@ returns a lot of cities, you can pass a callback routine to fetch().
 This routine receives the list of city structures as @_. If a callback
 method is given to fetch(), fetch() will return an empty list.
 
+Here's an excerpt from heavens-above.com documentation: 
+
+=over 4
+
+You can use "wildcard" characters to match several towns if you're not
+sure of the exact name. These characters are '*' which means "match
+any sequence of characters", and '?' which means "match any single
+character". The search is not case-sensitive.
+
+Diacritic characters, such as ü and Ä can either be entered directly
+from the keyboard (assuming you have the appropriate keyboard), or
+simply enter the letter without diacritic (e.g. you can enter 'a' for
+'ä', 'à', 'á', 'â', 'ã' and 'å'). If you need a special character which
+is not on your keyboard, and is not a diacritic (e.g. the german 'ß',
+and scandinavian 'æ'), simply enter a "?" instead, and all characers
+will be matched.
+
+=back
+
 Note: heavens-above.com doesn't use ISO 3166 codes, but its own
 country codes. If you want to use those directly, please see the query()
 method. (And read the source for the full list of HA codes.)
@@ -399,6 +437,7 @@ sub fetch {
 =item query( $code, $searchstring [, $callback ] );
 
 This method is the actual method called by fetch().
+
 The only difference is that $code is the heavens-above.com specific
 country code, instead of the ISO 3166 code.
 
@@ -419,7 +458,7 @@ sub query {
     do {
 
         # $string now holds the next request (if necessary)
-        my ( $string, @list ) = $self->getpage( $form, $string );
+        ( $string, my @list ) = $self->getpage( $form, $string );
 
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
@@ -470,16 +509,38 @@ sub getpage {
         $town->{alias} = $1 if $town->{name} =~ s/\(alias for (.*?)\)//;
         push @data, $town;
     }
+
+    # clear off the tree
+    @rows = ();
     $root->delete;
 
+    # more than 200 answers: compute better hints for next query
     if ( $count == -1 ) {
 
-        # TODO
-        # find the first ones and store them
-        # and modify $string
-        # 1) easy: "str" and "str*"
-        # 2) not difficult: "st*r" (one star)
-        # 3) difficult: several jokers
+        # simplest case
+        if ( $string =~ y/*// == 1 ) {
+            my $re = "^$string\$";
+            $re =~ s/([aceidnouy])/$isolatin{lc $1}/ig;
+            $re =~ s/\*/(.).*/;    # HA's * are greedy, I think
+            $data[-1]{name} =~ /$re/i;
+            my $last = $1;
+            $re =~ s/\(.\)/$last/;
+            $re = qr/$re/i;
+            pop @data while $data[-1]{name} =~ $re;
+            $string =~ s/\*/$last*/;
+        }
+
+        # more difficult cases with several jokers are ignored
+    }
+    else {
+
+        # simplest case
+        if ( $string =~ y/*// == 1 ) {
+            $string =~ s/z\*/*/i;
+            $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
+        }
+
+        # more difficult cases with several jokers are ignored
     }
     return ( $string, @data );
 }
@@ -491,6 +552,11 @@ sub getpage {
 The fetch() and query() methods both accept a optionnal coderef as
 their third argument. This method is used as a callback each time a
 batch of cities is returned by a web query to heavens-above.com.
+
+This can be very useful if a query with a joker returns more than
+200 answers.  WWW::Gazetteer::HeavensAbove breaks it into new requests
+that return a smaller number of answers. The callback is called with
+the results of the subquery after each web request.
 
 This method is called in void context, and is passed a list of
 hashrefs (the cities fetched by the last query).
@@ -504,18 +570,24 @@ An example callback is (from F<eg/city.pl>):
      print @$_{qw(name alias region latitude longitude elevation)} for @_;
  };
 
+Please note that, due to the nature of the queries, your callback
+can (and will most probably) be called with an empty @_.
+
 =head1 TODO
 
-Allow the script to run correctly when a query returns more than 200
-answers (stops at the 200 firsts for the moment).
+Handle the case where a query with more than one joker (*?) returns
+more than 200 answers. For now, it stops at 200.
 
 Find an appropriate interface with Leon, and adhere to it.
 
 =head1 BUGS
 
-WWW::Gazetteer::HeavensAbove does not work correctly yes with the US,
-since the database returns State and County. I suppose this is the only
-country that behaves this way, due to the way the database was created.
+Network errors croak. This can be a problem when making big queries
+(that return more than 200 answers) which results are passed to a
+callback, because part of the data has been already processed by
+the callback when the script dies. And even if you can catch the exception,
+you cannot easily guess where to start again. Maybe a retry parameter
+could help a little.
 
 Bugs in the database are not from heavens-above.com, since they
 "put together and enhanced" data from the following two sources:
