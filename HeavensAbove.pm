@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -33,7 +33,7 @@ my %iso = (
     'AZ' => 'AJ',    # AZERBAIJAN
     'BB' => 'BB',    # BARBADOS
     'BD' => 'BG',    # BANGLADESH
-    'BE' => 'BE',    # BELGIUM
+        'BE' => 'BE',    # BELGIUM
     'BF' => 'UV',    # BURKINA FASO
     'BG' => 'BU',    # BULGARIA
     'BH' => 'BA',    # BAHRAIN
@@ -589,13 +589,22 @@ sub getpage {
 
         # simplest case (scary, heh?)
         if ( $string =~ y/*// == 1 ) {
-            my $re = '^' . quotemeta($string) . '$';
-            $re =~ s/\?/./g;
+
+            # this removes the ? characters before the * in the query string
+            my $len = index( $string, '*' );
+            substr( $string, 0, $len, substr( $data[-1]{name}, 0, $len ) );
+
+            # $re removes the cities that the next query will retrieve
+            $string =~ /^([^*]*)\*(.*)/;
+            my $re  = "^$1(.).*$2\$";
+            $re =~ y/?/./;
+            _isolatin($re);
             $re =~ s/([aceidnouy])/$isolatin{lc $1}/ig;
-            $re =~ s/\\\*/(.).*/;    # HA's * are greedy, I think
-            $data[-1]{name} =~ /$re/i;
-            my $last = $string eq '*' ? substr( $data[-1]{name}, 0, 1 ) : $1;
-            if ($last) {
+
+            # compute the next query string
+            if ( $data[-1]{name} =~ /$re/i ) {
+                my $last =
+                  $string eq '*' ? substr( $data[-1]{name}, 0, 1 ) : $1;
                 _isolatin($last);
                 $re =~ s/\(\.\)/$isolatin{lc $last}||$last/e;
                 $re = qr/$re/i;

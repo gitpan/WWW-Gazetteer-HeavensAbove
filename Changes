@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.13 Mon Sep 15 00:23:11 CEST 2003
+        - Bugfix: prevent a foo?* query string to become foo??*
+          in the next iteration
+
 0.12 Sun Sep 14 12:38:29 CEST 2003
         - Bugfix: a search string with an accented letter could create
           an infinite loop
