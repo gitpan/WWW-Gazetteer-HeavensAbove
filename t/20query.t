@@ -2,7 +2,7 @@ use strict;
 use Test::More tests => 11;
 use WWW::Gazetteer::HeavensAbove;
 
-my $g = WWW::Gazetteer::HeavensAbove->new;
+my $g = WWW::Gazetteer::HeavensAbove->new( retry => 1 );
 my @cities;
 
 # simple query

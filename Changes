@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.09 Fri Feb  7 00:49:49 CET 2003
+        - The heavensabove.com now gives a 500 error when
+          a non-existing country code is used
+
 0.08 Thu Oct 24 13:33:31 CEST 2002
         - a correct User-Agent string
         - sleep 3 between retries

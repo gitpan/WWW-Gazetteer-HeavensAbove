@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = 0.08;
+$VERSION = 0.09;
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -526,14 +526,16 @@ sub getpage {
         last if $res->is_success;
         sleep 3;
     }
-    croak $res->status_line if not $res->is_success;
 
     # bad HA code
     my $content = $res->content;
-    if ( index( $content, "ADODB.Field" ) != -1 ) {
+    if ( $res->code == 500 and index( $content, "ADODB.Field" ) != -1 ) {
         $res->request->content =~ /CountryID=(..)/;
         croak "No HA code $1";
     }
+
+    # Other web errors
+    croak $res->status_line if not $res->is_success;
 
     # check if there were more than 200 answers
     $content =~ s/&nbsp;/ /g;
