@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -292,6 +292,12 @@ my %isolatin = (
     y => '[YyÝýÿ]',
 );
 
+# helper sub
+sub _isolatin {
+    $_[0] =~ tr{ÀÁÂÃÄÅàáâãäåÇçÈÉÊËèéêëÌÍÎÏìíîïÐðÑñÒÓÔÕÖØòóôõöøÙÚÛÜùúûüÝýÿ}
+               {aaaaaaaaaaaacceeeeeeeeiiiiiiiiddnnoooooooooooouuuuuuuuyyy};
+}
+
 =pod
 
 =head1 NAME
@@ -501,6 +507,7 @@ sub query {
     my $form = HTML::Form->parse( $res->content, $base );
 
     my $string = $query;
+    _isolatin($string);
     my @data;
     do {
 
@@ -589,7 +596,8 @@ sub getpage {
             $data[-1]{name} =~ /$re/i;
             my $last = $string eq '*' ? substr( $data[-1]{name}, 0, 1 ) : $1;
             if ($last) {
-                $re =~ s/\(\.\)/quotemeta($last)/e;
+                _isolatin($last);
+                $re =~ s/\(\.\)/$isolatin{lc $last}||$last/e;
                 $re = qr/$re/i;
                 pop @data while @data && $data[-1]{name} =~ $re;
                 $string =~ s/\*/$last*/;
@@ -610,6 +618,7 @@ sub getpage {
         # simplest case
         if ( $string =~ y/*// == 1 ) {
             $string =~ s/[z?]\*/*/i;    # ugly hack, continued
+            _isolatin($string);
             $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;
 
             # quick and dirty for now

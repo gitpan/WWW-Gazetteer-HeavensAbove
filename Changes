@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.12 Sun Sep 14 12:38:29 CEST 2003
+        - Bugfix: a search string with an accented letter could create
+          an infinite loop
+
 0.11 Sat Sep 13 23:59:56 CEST 2003
         - Buenavista, MX is a special case: there are 200
           cities with the same exact name in Mexico.

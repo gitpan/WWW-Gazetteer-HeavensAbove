@@ -1,11 +1,11 @@
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 34;
 use WWW::Gazetteer::HeavensAbove;
 
 my @cities;
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
-diag("Be patient... this test suite is very long (63 web requests)");
+diag("Be patient... this test suite is very long (77 web requests)");
 
 # star at the beginning (9 web requests)
 @cities = $g->find( '*s', 'UY' );
@@ -38,3 +38,8 @@ $g->find( '*', 'PF', $cb );
 # test the buenavista*, MX case: 200+ cities with the same name
 @counts = ( 200, 14 );
 $g->find( 'buenavista*', 'MX', $cb );
+
+# Make sure the search string stays ok
+@cities = $g->find( 'u*', 'PE' );
+ok( @cities == 439, "439 cities named 'U*' in Peru" )
+  or diag( "Fetched " . @cities . " cities" );
