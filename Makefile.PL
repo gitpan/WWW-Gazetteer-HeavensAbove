@@ -10,4 +10,5 @@ WriteMakefile(
     },
     ABSTRACT_FROM => 'HeavensAbove.pm',
     AUTHOR        => 'Philippe "BooK" Bruhat <book@cpan.org>',
+    # LICENSE       => 'perl', # EUMM >= 6.30_04 required for this
 );

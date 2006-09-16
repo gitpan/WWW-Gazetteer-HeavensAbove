@@ -51,6 +51,6 @@ ok( @cities == 419, "419 cities named 'San Antonio*' in Mexico" )
 
 # check the zz* case
 @cities = $g->find( 'Santa cru*', 'MX' );
-ok( @cities == 233, "233 cities named 'San Antonio*' in Mexico" )
+ok( @cities == 233, "233 cities named 'Santa cru*' in Mexico" )
   or diag( "Fetched " . @cities . " cities" );
 

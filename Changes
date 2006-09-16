@@ -1,5 +1,10 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.16 Sat Sep 16 22:25:50 CEST 2006
+        - moved all pod documentation at the end of files
+        - added a simple example script (which is the main use of the module)
+        - add a license to META.yml
+
 0.15 Mon Mar 28 16:08:17 CEST 2005
         - the sub-query algorithm is explained
         - tests for pod and pod coverage

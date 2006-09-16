@@ -4,8 +4,14 @@ use strict;
 use WWW::Gazetteer::HeavensAbove;
 $|++;
 
-my $g = WWW::Gazetteer::HeavensAbove->new;
+my $g = WWW::Gazetteer::HeavensAbove->new();
 
+#
+# usage: city.pl <glob> <iso>
+#
+# for example, run: city.pl 'l*' fr
+# to get all French cities starting with l*
+#
 my $city = shift;
 my $code = uc shift;
 my $cb   = sub {

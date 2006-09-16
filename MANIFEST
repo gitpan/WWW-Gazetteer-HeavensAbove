@@ -2,7 +2,8 @@ Changes
 eg/city.pl
 HeavensAbove.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
+META.yml
 README
 t/00basic.t
 t/10new.t
@@ -12,4 +13,3 @@ t/40callback.t
 t/50big.t
 t/pod-coverage.t
 t/pod.t
-META.yml                                 Module meta-data (added by MakeMaker)
