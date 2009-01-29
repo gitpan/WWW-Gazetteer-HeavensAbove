@@ -1,5 +1,11 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.17 Thu Jan 29 02:46:27 CET 2009
+        - Bugfix: "ß" is followed by "t" when dividing a '*' query
+          (reported by Henry Ayoola as RT ticket #42709, now closed)
+        - reorganized the distribution as a modern one, with a lib/
+          directory and a Build.PL script
+
 0.16 Sat Sep 16 22:25:50 CEST 2006
         - moved all pod documentation at the end of files
         - added a simple example script (which is the main use of the module)

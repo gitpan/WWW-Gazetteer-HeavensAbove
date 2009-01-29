@@ -7,7 +7,7 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.16';
+$VERSION = '0.17';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -461,6 +461,7 @@ sub _getpage {
             # next step
             _isolatin($string);
             $string =~ s/([a-y])\*/chr(1+ord$1).'*'/ie;    # classic
+            $string =~ s/ß\*/t*/;           # German ß sorts before t
             $string =~ s/[-'" (,]\*/a*/;    # quick and dirty for now
         }
 
@@ -726,12 +727,10 @@ USA and dependencies, and The National Imaging and Mapping Agency
 
 See also: L<http://www.heavens-above.com/ShowFAQ.asp?FAQID=100>
 
-=head1 AUTHOR
-
-Philippe "BooK" Bruhat C<< <book@cpan.org> >>.
+=head1 ACKNOWLEDGEMENTS
 
 This module was a script, before I found out about Leon Brocard's
-L<WWW::Gazetteer module>. Thanks! And, erm, bits of the documentation were
+L<WWW::Gazetteer> module. Thanks! And, erm, bits of the documentation were
 stolen from L<WWW::Gazetteer>.
 
 Thanks to Alain Zalmanski (of L<http://www.fatrazie.com/> fame) for asking
@@ -739,7 +738,7 @@ me for all that geographical data in the first place.
 
 =head1 SEE ALSO
 
-"How I captured thousands of Afghan cities in a few hours", one of my
+"I<How I captured thousands of Afghan cities in a few hours>", one of my
 lightning talks at YAPC::Europe 2002 (Munich). You had to be there.
 
 L<WWW::Gazetteer> and L<WWW::Gazetteer::Calle>, by Leon Brocard.
@@ -747,9 +746,18 @@ L<WWW::Gazetteer> and L<WWW::Gazetteer::Calle>, by Leon Brocard.
 The use Perl discussion that had me write this module from the original
 script: L<http://use.perl.org/~acme/journal/8079>
 
-=head1 COPYRIGHT & LICENSE
+The module master repository is held at:
+L<http://git.bruhat.net/r/WWW-Gazetteer-HeavensAbove.git>
 
-Copyright 2002-2006 Philippe Bruhat.
+=head1 AUTHOR
+
+Philippe "BooK" Bruhat C<< <book@cpan.org> >>.
+
+=head1 COPYRIGHT
+
+Copyright 2002-2009 Philippe Bruhat.
+
+=head1 LICENSE
 
 This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
