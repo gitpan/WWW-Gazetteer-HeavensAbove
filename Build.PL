@@ -1,6 +1,7 @@
 use Module::Build;
 my $build = Module::Build->new(
     module_name       => 'WWW::Gazetteer::HeavensAbove',
+    dist_author       => 'Philippe Bruhat (BooK) <book@cpan.org>',
     license           => 'perl',
     requires          => {
         'HTML::TreeBuilder' => 3.13,

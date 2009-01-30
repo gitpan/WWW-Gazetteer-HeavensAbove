@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.18 Fri Jan 30 01:27:54 CET 2009
+        - provide a correct Makefile.PL
+        - reformatted bits of the documentation
+
 0.17 Thu Jan 29 02:46:27 CET 2009
         - Bugfix: "ß" is followed by "t" when dividing a '*' query
           (reported by Henry Ayoola as RT ticket #42709, now closed)

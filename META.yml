@@ -1,8 +1,8 @@
 ---
 name: WWW-Gazetteer-HeavensAbove
-version: 0.17
+version: 0.18
 author:
-  - Philippe "BooK" Bruhat C<< <book@cpan.org> >>.
+  - 'Philippe Bruhat (BooK) <book@cpan.org>'
 abstract: Find location of world towns and cities
 license: perl
 resources:
@@ -15,7 +15,7 @@ requires:
 provides:
   WWW::Gazetteer::HeavensAbove:
     file: lib/WWW/Gazetteer/HeavensAbove.pm
-    version: 0.17
+    version: 0.18
 generated_by: Module::Build version 0.280801
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
