@@ -1,5 +1,14 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.20 Fri Dec 20 2013
+        - update the Changes file
+
+0.19 Fri Dec 20 2013
+        - finally fixed the module to work with the new version of the web
+          site (which had changed in May 2011, making the test suite fail
+          since then)
+        - switched to Dist::Zilla for maintaining the distribution
+
 0.18 Fri Jan 30 01:27:54 CET 2009
         - provide a correct Makefile.PL
         - reformatted bits of the documentation

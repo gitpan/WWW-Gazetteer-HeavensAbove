@@ -25,4 +25,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Gazetteer-HeavensAbove
   repository: http://github.com/book/WWW-Gazetteer-HeavensAbove.git
-version: 0.19
+version: 0.20
