@@ -1,4 +1,7 @@
 package WWW::Gazetteer::HeavensAbove;
+{
+  $WWW::Gazetteer::HeavensAbove::VERSION = '0.21';
+}
 
 use strict;
 use warnings;
@@ -8,7 +11,6 @@ use HTML::TreeBuilder;
 use Carp qw( croak );
 
 use vars qw( $VERSION );
-$VERSION = '0.18';
 
 # web site data
 my $base = 'http://www.heavens-above.com/';
@@ -426,7 +428,7 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 SYNOPSIS
 

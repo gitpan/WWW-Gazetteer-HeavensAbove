@@ -1,5 +1,8 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.21 Fri Dec 20 2013
+        - fix the $VERSION value
+
 0.20 Fri Dec 20 2013
         - update the Changes file
 
