@@ -17,12 +17,12 @@ my $code = uc shift;
 my $cb   = sub {
     local $, = "\t";
     local $\ = $/;
-    my @fields = qw(iso name alias region latitude longitude elevation);
-    splice @fields, 4, 0, "county" if $code eq 'US';
+    my @fields = qw(iso name region latitude longitude elevation);
+    splice @fields, 3, 0, "county" if $code eq 'US';
     print @$_{@fields} for @_;
 };
 
-print "# iso\tname\talias\tregion\t"
+print "# iso\tname\tregion\t"
   . ( $code eq 'US' ? "county\t" : "" )
   . "latitude\tlongitude\televation\n";
 

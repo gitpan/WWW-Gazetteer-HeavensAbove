@@ -1,6 +1,13 @@
 use strict;
-use Test::More tests => 9;
+use warnings;
+use t::Util;
+use Test::More;
 use WWW::Gazetteer::HeavensAbove;
+
+plan 'skip_all' => 'Internet connection required to run this test'
+   if ! web_ok();
+
+plan tests => 9;
 
 my $g = WWW::Gazetteer::HeavensAbove->new;
 my @cities;
@@ -16,7 +23,6 @@ is_deeply(
         latitude   => '51.517',
         regionname => 'county',
         region     => 'Greater London',
-        alias      => '',
         elevation  => '18',
         longitude  => '-0.105',
         name       => 'London'
@@ -40,7 +46,6 @@ is_deeply(
         latitude   => '45.633',
         regionname => 'region',
         region     => 'Rhône-Alpes',
-        alias      => 'Les Paris',
         elevation  => '508',
         longitude  => '5.733',
         name       => 'Paris'
@@ -55,7 +60,6 @@ is_deeply(
         latitude   => '48.867',
         regionname => 'region',
         region     => 'Île-de-France',
-        alias      => '',
         elevation  => '34',
         longitude  => '2.333',
         name       => 'Paris'
@@ -75,7 +79,6 @@ is_deeply(
         regionname => 'state',
         region     => 'Missouri',
         county     => 'Caldwell',
-        alias      => '',
         elevation  => '244',
         longitude  => '-93.927',
         name       => 'New York'

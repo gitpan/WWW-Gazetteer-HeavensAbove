@@ -1,6 +1,7 @@
 package WWW::Gazetteer::HeavensAbove;
 
 use strict;
+use warnings;
 use LWP::UserAgent;
 use HTML::Form;
 use HTML::TreeBuilder;
@@ -216,69 +217,13 @@ my %iso = (
     'MD' => 'MD',    # MOLDOVA, REPUBLIC OF / MOLDOVA
     'WF' => 'WF',    # WALLIS AND FUTUNA ISLANDS / WALLIS AND FUTUNA
     'LA' => 'LA',    # LAO PEOPLE'S DEMOCRATIC REPUBLIC / LAOS
-    'AN' => 'NT',    # NETHERLANDS ANTILLES / NETHERLAND ANTILLES
+
+    # added to HA since version 0.18
+    'TJ'  => 'TI',   # TAJIKISTAN
+    'TZ'  => 'TZ',   # TANZANIA, UNITED REPUBLIC OF
+    'VI'  => 'UI',   # VIRGIN ISLANDS (U.S.)
 );
 
-=begin codes
-
-# Heavens-above places without ISO 3166 code
-# You can use those with query()
-%ha = (
-        'JE' => 'JERSEY',
-        'SR' => 'SERBIA',
-        'MW' => 'MONTENEGRO',
-        'GK' => 'GUERNSEY',
-        'GZ' => 'GAZA STRIP',
-        'WE' => 'WEST BANK',
-      );
-
-# ISO 3166 codes not used yet or countries not in HA
-%iso = (
-         'IO' => 'BRITISH INDIAN OCEAN TERRITORY',
-         'BV' => 'BOUVET ISLAND',
-         'YT' => 'MAYOTTE',
-         'YU' => 'YUGOSLAVIA',
-         'RE' => 'REUNION',
-         'RW' => 'RWANDA',
-         'KM' => 'COMOROS',
-         'SC' => 'SEYCHELLES',
-         'SJ' => 'SVALBARD AND JAN MAYEN ISLANDS',
-         'SM' => 'SAN MARINO',
-         'ST' => 'SAO TOME AND PRINCIPE',
-         'TF' => 'FRENCH SOUTHERN TERRITORIES',
-         'EH' => 'WESTERN SAHARA',
-         'TJ' => 'TAJIKISTAN',
-         'TK' => 'TOKELAU',
-         'TP' => 'EAST TIMOR',
-         'TZ' => 'TANZANIA, UNITED REPUBLIC OF',
-         'MO' => 'MACAU',
-         'MP' => 'NORTHERN MARIANA ISLANDS',
-         'MQ' => 'MARTINIQUE',
-         'MS' => 'MONTSERRAT',
-         'FK' => 'FALKLAND ISLANDS (MALVINAS)',
-         'UM' => 'UNITED STATES MINOR OUTLYING ISLANDS',
-         'FM' => 'MICRONESIA, FEDERATED STATES OF',
-         'NC' => 'NEW CALEDONIA',
-         'FX' => 'FRANCE, METROPOLITAN',
-         'VA' => 'VATICAN CITY STATE (HOLY SEE)',
-         'NR' => 'NAURU',
-         'NU' => 'NIUE',
-         'VG' => 'VIRGIN ISLANDS (BRITISH)',
-         'VI' => 'VIRGIN ISLANDS (U.S.)',
-         'GL' => 'GREENLAND',
-         'GP' => 'GUADELOUPE',
-         'GS' => 'SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS',
-         'GW' => 'GUINEA-BISSAU',
-         'HM' => 'HEARD AND MC DONALD ISLANDS',
-         'WS' => 'SAMOA',
-         'PM' => 'ST. PIERRE AND MIQUELON',
-         'PN' => 'PITCAIRN',
-         'PW' => 'PALAU'
-       );
-
-=end codes
-
-=cut
 
 my %isolatin = (
     a => '[AaÀÁÂÃÄÅàáâãäå]',
@@ -323,10 +268,10 @@ sub find {
 sub query {
     my ( $self, $query, $code, $callback ) = @_;
     $code = uc $code;
-    my $iso;
+    my $iso = '';
     for ( keys %iso ) { $iso = $_, last if $iso{$_} eq $code }
 
-    my $url = $base . "selecttown.asp?CountryID=$code&loc=Unspecified";
+    my $url = $base . "SelectTown.aspx";
     my $res = $self->{ua}->request( HTTP::Request->new( GET => $url ) );
     croak $res->status_line if not $res->is_success;
 
@@ -338,7 +283,7 @@ sub query {
     do {
 
         # $string now holds the next request (if necessary)
-        ( $string, my @list ) = $self->_getpage( $form, $string, $iso );
+        ( $string, my @list ) = $self->_getpage( $form, $string, $code, $iso );
 
         # process the block of data
         defined $callback ? $callback->(@list) : push @data, @list;
@@ -350,10 +295,12 @@ sub query {
 
 # this is a private method
 sub _getpage {
-    my ( $self, $form, $string, $iso ) = @_;
+    my ( $self, $form, $string, $code, $iso ) = @_;
 
     # fill the form and click submit
-    $form->find_input('Search')->value($string);
+    $form->find_input('ctl00$cph1$ddlCountry')->value($code);
+    $form->find_input('ctl00$cph1$txtSearch')->value($string);
+
     my $res;
     my $retry = $self->{retry};
 
@@ -365,43 +312,39 @@ sub _getpage {
     }
 
     # bad HA code
-    my $content = $res->content;
-    if ( $res->code == 500 and index( $content, "ADODB.Field" ) != -1 ) {
-        $res->request->content =~ /CountryID=(..)/;
-        croak "No HA code $1";
-    }
+    my $content = $res->decoded_content;
 
     # Other web errors
     croak $res->status_line if not $res->is_success;
 
     # check if there were more than 200 answers
     $content =~ s/&nbsp;/ /g;
-    $content =~ /(\d+) towns were found by the search./;
-    my $count = $1;
-    $count = -1 if index( $content, 'cut-off after 200 towns' ) != -1;
 
     # parse the data
     my @data;
     {
         my $root = HTML::TreeBuilder->new_from_content($content);
         my @rows =
-          ( $root->look_down( _tag => 'table' ) )[2]->look_down( _tag => 'tr' );
+          ( $root->look_down( _tag => 'table' ) )[4]->look_down( _tag => 'tr' );
 
         # handle the region name
         my $header = shift @rows;
         my @headers = map { lc $_->as_trimmed_text } $header->content_list;
         my $regionname;
         ( $regionname, $headers[1] ) = ( $headers[1], 'region' )
-          if ( @headers >= 5 );
+          if ( @headers >= 6 );
 
         # fetch and process the data for each line
         for (@rows) {
             my $town =
-              { regionname => $regionname || '', alias => '', region => '' };
+              { regionname => $regionname || '', region => '' };
             @$town{@headers} = map { $_->as_trimmed_text } $_->content_list;
-            $town->{alias} = $1 if $town->{name} =~ s/\(alias for (.*?)\)//;
+            $town->{latitude} =~ s/(.*)\x{b0}([NS])/($2 eq'S'&&'-').$1/e;
+            $town->{longitude} =~ s/(.*)\x{b0}([WE])/($2 eq'W'&&'-').$1/e;
+            $town->{name} = delete $town->{place};
             $town->{elevation} =~ s/ m$//;
             $town->{iso} = $iso;
+            delete $town->{''};
             push @data, $town;
         }
 
@@ -412,7 +355,7 @@ sub _getpage {
 
     # print STDERR "$string -> "; # DEBUG
     # more than 200 answers: compute better hints for next query
-    if ( $count == -1 ) {
+    if ( @data == 200 ) {
 
         # simplest case (scary, heh?)
         if ( $string =~ y/*// == 1 ) {
@@ -473,11 +416,17 @@ sub _getpage {
 
 1;
 
-__END__
+
+
+=pod
 
 =head1 NAME
 
 WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
+
+=head1 VERSION
+
+version 0.19
 
 =head1 SYNOPSIS
 
@@ -522,12 +471,12 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
 =head1 DESCRIPTION
 
 A gazetteer is a geographical dictionary (as at the back of an atlas).
-The C<WWW::Gazetteer::HeavensAbove> module uses the information at
+The WWW::Gazetteer::HeavensAbove module uses the information at
 L<http://www.heavens-above.com/countries.asp> to return geographical location
 (longitude, latitude, elevation) for towns and cities in countries in the
 world.
 
-Once a C<WWW::Gazetteer::HeavensAbove> objects is created, use the C<find()>
+Once a WWW::Gazetteer::HeavensAbove objects is created, use the C<find()>
 method to return lists of hashrefs holding all the information for the
 matching cities.
 
@@ -538,12 +487,11 @@ A city tructure looks like this:
      latitude   => '45.633',
      regionname => 'Region',
      region     => 'Rhône-Alpes',
-     alias      => 'Les Paris',
      elevation  => '508',            # meters
      longitude  => '5.733',
      name       => 'Paris',
  };
- 
+
 Note: the 'regioname' attribute is the local name of a region (this can
 change from country to country).
 
@@ -559,29 +507,28 @@ Here is an example of an American city:
      regionname => 'State',
      region     => 'Missouri',
      county     => 'Caldwell',    # this is only for US cities
-     alias      => '',
      elevation  => '244',
      longitude  => '-93.927',
      name       => 'New York'
  };
- 
+
 =head2 Methods
 
 =over 4
 
 =item new()
 
-Return a new C<WWW::Gazetteer::UserAgent>, ready to C<find()> cities for you.
+Return a new WWW::Gazetteer::HeavensAbove user-agent, ready to C<find()> cities for you.
 
 The constructor can be given a list of parameters.
 Currently supported parameters are:
 
-C<ua> - the C<LWP::UserAgent> used for the web requests
+C<ua> - the L<LWP::UserAgent> used for the web requests
 
 C<retry> - the number of times a failed connection will be retried
 
-You can also use the generic C<WWW::Gazetteer> module to create a new
-C<WWW::Gazetteer::HeavenAbove> object:
+You can also use the generic L<WWW::Gazetteer> module to create a new
+WWW::Gazetteer::HeavenAbove object:
 
  use WWW::Gazetteer;
  my $g = WWW::Gazetteer->new('HeavensAbove');
@@ -594,19 +541,19 @@ You can also pass it inialisation parameters:
 =item find( $city, $country [, $callback ] )
 
 Return a list of cities matching C<$city>, within the country with ISO 3166
-code $code (not all codes are supported by heavens-above.com).
+code C<$code> (not all codes are supported by heavens-above.com).
 
 This method always returns an array of city structures. If the request
 returns a lot of cities, you can pass a callback routine to C<find()>.
-This routine receives the list of city structures as @_. If a callback
+This routine receives the list of city structures as C<@_>. If a callback
 method is given to C<find()>, C<find()> will return an empty list.
 
 A single call to C<find()> can lead to several web requests. If the
 query returns more than 200 answeris, heavens-above.com cuts at 200.
-C<WWW::Gazetteer::HeavensAbove> picks as many data as possible from this
+WWW::Gazetteer::HeavensAbove picks as many data as possible from this
 first answer and then refines the query again and again.
 
-Here's an excerpt from heavens-above.com documentation: 
+Here's an excerpt from heavens-above.com documentation:
 
 =over 4
 
@@ -631,13 +578,13 @@ method. (And read the source for the full list of HA codes.)
 
 =item fetch( $searchstring, $code [, $callback ] );
 
-fetch() is a synonym for find(). It is kept for backward compatibility.
+C<fetch()> is a synonym for C<find()>. It is kept for backward compatibility.
 
 =item query( $searchstring, $code [, $callback ] );
 
-This method is the actual method called by find().
+This method is the actual method called by C<find()>.
 
-The only difference is that $code is the heavens-above.com specific
+The only difference is that C<$code> is the heavens-above.com specific
 country code, instead of the ISO 3166 code.
 
 =back
@@ -649,7 +596,7 @@ their third argument. This method is used as a callback each time a
 batch of cities is returned by a web query to heavens-above.com.
 
 This can be very useful if a query with a joker returns more than
-200 answers.  C<WWW::Gazetteer::HeavensAbove> breaks it into new requests
+200 answers. WWW::Gazetteer::HeavensAbove breaks it into new requests
 that return a smaller number of answers. The callback is called with
 the results of the subquery after each web request.
 
@@ -662,17 +609,76 @@ An example callback is (from F<eg/city.pl>):
  my $cb = sub {
      local $, = "\t";
      local $\ = $/;
-     print @$_{qw(name alias region latitude longitude elevation)} for @_;
+     print @$_{qw(name region latitude longitude elevation)} for @_;
  };
 
 Please note that, due to the nature of the queries, your callback
 can (and will most probably) be called with an empty C<@_>.
 
+=begin codes
+
+# Heavens-above places without ISO 3166 code
+# You can use those with query()
+%ha = (
+        'JE' => 'JERSEY',
+        'SR' => 'SERBIA',
+        'MW' => 'MONTENEGRO',
+        'GK' => 'GUERNSEY',
+        'GZ' => 'GAZA STRIP',
+        'WE' => 'WEST BANK',
+      );
+
+# ISO 3166 codes not used yet or countries not in HA
+%iso = (
+         'IO' => 'BRITISH INDIAN OCEAN TERRITORY',
+         'BV' => 'BOUVET ISLAND',
+         'YT' => 'MAYOTTE',
+         'YU' => 'YUGOSLAVIA',
+         'RE' => 'REUNION',
+         'RW' => 'RWANDA',
+         'KM' => 'COMOROS',
+         'SC' => 'SEYCHELLES',
+         'SJ' => 'SVALBARD AND JAN MAYEN ISLANDS',
+         'SM' => 'SAN MARINO',
+         'ST' => 'SAO TOME AND PRINCIPE',
+         'TF' => 'FRENCH SOUTHERN TERRITORIES',
+         'EH' => 'WESTERN SAHARA',
+         'TK' => 'TOKELAU',
+         'TP' => 'EAST TIMOR',
+         'MO' => 'MACAU',
+         'MP' => 'NORTHERN MARIANA ISLANDS',
+         'MQ' => 'MARTINIQUE',
+         'MS' => 'MONTSERRAT',
+         'FK' => 'FALKLAND ISLANDS (MALVINAS)',
+         'UM' => 'UNITED STATES MINOR OUTLYING ISLANDS',
+         'FM' => 'MICRONESIA, FEDERATED STATES OF',
+         'NC' => 'NEW CALEDONIA',
+         'FX' => 'FRANCE, METROPOLITAN',
+         'VA' => 'VATICAN CITY STATE (HOLY SEE)',
+         'NR' => 'NAURU',
+         'NU' => 'NIUE',
+         'VG' => 'VIRGIN ISLANDS (BRITISH)',
+         'GL' => 'GREENLAND',
+         'GP' => 'GUADELOUPE',
+         'GS' => 'SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS',
+         'GW' => 'GUINEA-BISSAU',
+         'HM' => 'HEARD AND MC DONALD ISLANDS',
+         'WS' => 'SAMOA',
+         'PM' => 'ST. PIERRE AND MIQUELON',
+         'PN' => 'PITCAIRN',
+         'PW' => 'PALAU'
+
+         # removed from HA since version 0.18
+         'AN' => 'NETHERLANDS ANTILLES / NETHERLAND ANTILLES', # NT
+       );
+
+=end codes
+
 =head1 ALGORITHM
 
 The web site returns only the first 200 answers to any query.
 To handle huge requests like '*' (the biggest possible),
-C<WWW::Gazetteer::HeavensAbove> splits the requests in several parts.
+WWW::Gazetteer::HeavensAbove splits the requests in several parts.
 
 Example, looking for C<pa*> in France:
 
@@ -689,7 +695,7 @@ C<pa*> returns more than 200 answers, the last ones being:
     199 Paraise, Bourgogne
     200 Paraize (Paraise), Bourgogne
 
-The algorithm keeps the 196 first ones, because they match <pa*> and 
+The algorithm keeps the 196 first ones, because they match C<pa*> and
 not C<par*> (C<r> is the first character matched by C<*> in the
 last city matched).
 
@@ -731,7 +737,7 @@ US Geological Survey (L<http://geonames.usgs.gov/index.html>) for the
 USA and dependencies, and The National Imaging and Mapping Agency
 (L<http://www.nima.mil/gns/html/index.html>) for all other countries.
 
-See also: L<http://www.heavens-above.com/ShowFAQ.asp?FAQID=100>
+See also: L<http://www.heavens-above.com/ShowFAQ.aspx?FAQID=100>
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -753,15 +759,26 @@ The use Perl discussion that had me write this module from the original
 script: L<http://use.perl.org/~acme/journal/8079>
 
 The module master repository is held at:
-L<http://git.bruhat.net/r/WWW-Gazetteer-HeavensAbove.git>
+L<http://git.bruhat.net/r/WWW-Gazetteer-HeavensAbove.git> and
+L<http://github.com/book/WWW-Gazetteer-HeavensAbove>.
+
+=head1 BUGS
+
+Please report any bugs or feature requests on the bugtracker website
+http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Gazetteer-HeavensAbove or by
+email to bug-git-repository@rt.cpan.org.
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
 
 =head1 AUTHOR
 
-Philippe Bruhat (BooK) C<< <book@cpan.org> >>.
+Philippe Bruhat (BooK) <book@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2002-2009 Philippe Bruhat (BooK).
+Copyright 2002-2013 Philippe Bruhat (BooK).
 
 =head1 LICENSE
 
@@ -769,4 +786,9 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
+
+
+__END__
+
+# ABSTRACT: Find location of world towns and cities
 

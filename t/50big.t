@@ -1,6 +1,13 @@
 use strict;
-use Test::More tests => 36;
+use warnings;
+use t::Util;
+use Test::More;
 use WWW::Gazetteer::HeavensAbove;
+
+plan 'skip_all' => 'Internet connection required to run this test'
+   if ! web_ok();
+
+plan tests => 36;
 
 my @cities;
 my $g = WWW::Gazetteer::HeavensAbove->new;

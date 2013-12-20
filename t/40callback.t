@@ -1,6 +1,13 @@
 use strict;
-use Test::More tests => 3;
+use warnings;
+use t::Util;
+use Test::More;
 use WWW::Gazetteer::HeavensAbove;
+
+plan 'skip_all' => 'Internet connection required to run this test'
+   if ! web_ok();
+
+plan tests => 3;
 
 my $g = WWW::Gazetteer::HeavensAbove->new;
 
@@ -23,7 +30,6 @@ my @tests = (
         'latitude'   => '46.633',
         'regionname' => 'region',
         'region'     => 'Rhône-Alpes',
-        'alias'      => 'Les Paris',
         'elevation'  => '508',
         'longitude'  => '5.733',
         'name'       => 'Paris'
@@ -33,7 +39,6 @@ my @tests = (
         'latitude'   => '49.867',
         'regionname' => 'region',
         'region'     => 'Île-de-France',
-        'alias'      => '',
         'elevation'  => '34',
         'longitude'  => '2.333',
         'name'       => 'Paris'

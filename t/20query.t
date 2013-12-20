@@ -1,6 +1,13 @@
 use strict;
-use Test::More tests => 11;
+use warnings;
+use t::Util;
+use Test::More;
 use WWW::Gazetteer::HeavensAbove;
+
+plan 'skip_all' => 'Internet connection required to run this test'
+   if ! web_ok();
+
+plan tests => 12;
 
 my $g = WWW::Gazetteer::HeavensAbove->new( retry => 1 );
 my @cities;
@@ -14,7 +21,6 @@ my $london = {
     'latitude'   => '51.517',
     'regionname' => 'county',
     'region'     => 'Greater London',
-    'alias'      => '',
     'elevation'  => '18',
     'longitude'  => '-0.105',
     'name'       => 'London'
@@ -35,7 +41,6 @@ my @tests = (
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
-        'alias'      => '',
         'elevation'  => '363',
         'longitude'  => '67.100',
         'name'       => 'Mazar-e Sharif'
@@ -45,7 +50,6 @@ my @tests = (
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
-        'alias'      => 'Mazar-e Sharif',
         'elevation'  => '363',
         'longitude'  => '67.100',
         'name'       => 'Mazar-i-Sharif'
@@ -55,7 +59,6 @@ my @tests = (
         'latitude'   => '36.700',
         'regionname' => 'region',
         'region'     => 'Balkh',
-        'alias'      => 'Mazar-e Sharif',
         'elevation'  => '363',
         'longitude'  => '67.100',
         'name'       => 'Mazare Srif'
@@ -65,8 +68,12 @@ my @tests = (
 is_deeply( $cities[$_], $tests[$_], $tests[$_]{name} ) for 0 .. 2;
 
 # a HA country code that doesn't exist
+eval { @cities = $g->find( 'Brest', 'ZZ' ); };
+like( $@, qr/No HA code for ZZ ISO code/, 'Invalid code' );
+
+# a HA country code that doesn't exist
 eval { @cities = $g->query( 'Brest', 'RU' ); };
-like( $@, qr/No HA code RU/, 'Invalid code' );
+like( $@, qr/500 Internal Server Error/, 'Invalid code' );
 
 # a country without regions
 @cities = $g->query( 'Fitii', 'FP' );
@@ -78,7 +85,6 @@ is_deeply(
         latitude   => -16.733,
         longitude  => -151.033,
         elevation  => 77,
-        alias      => '',
         region     => '',
         regionname => '',
         name       => 'Fitii'
