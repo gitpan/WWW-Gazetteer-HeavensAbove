@@ -1,6 +1,6 @@
 package WWW::Gazetteer::HeavensAbove;
 {
-  $WWW::Gazetteer::HeavensAbove::VERSION = '0.21';
+  $WWW::Gazetteer::HeavensAbove::VERSION = '0.22';
 }
 
 use strict;
@@ -305,21 +305,21 @@ sub _getpage {
 
     my $res;
     my $retry = $self->{retry};
+    my $delay = 5;
 
-    # retry until it works
+    # retry until it works, with increasing delays
     while ( $retry-- ) {
         $res = $self->{ua}->request( $form->click );
-        last if $res->is_success;
-        sleep 3;
+        last if $res->is_success || $res->code >= 500;;
+        sleep $delay if $retry;    # don't sleep if you won't retry
+        $delay *= 2;
     }
 
-    # bad HA code
-    my $content = $res->decoded_content;
-
-    # Other web errors
+    # there was an error, giving up
     croak $res->status_line if not $res->is_success;
 
     # check if there were more than 200 answers
+    my $content = $res->decoded_content;
     $content =~ s/&nbsp;/ /g;
 
     # parse the data
@@ -428,7 +428,7 @@ WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
 
 =head1 VERSION
 
-version 0.21
+version 0.22
 
 =head1 SYNOPSIS
 

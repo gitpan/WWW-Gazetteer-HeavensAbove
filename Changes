@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::Gazetteer::Heavens
 
+0.22 Tue Dec 31 2013
+        - double the wait time between retries after failed HTTP requests
+          (the server tends to 403 clients fire requests a little too fast)
+
 0.21 Fri Dec 20 2013
         - fix the $VERSION value
 

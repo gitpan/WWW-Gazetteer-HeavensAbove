@@ -10,7 +10,7 @@ plan 'skip_all' => 'Internet connection required to run this test'
 plan tests => 36;
 
 my @cities;
-my $g = WWW::Gazetteer::HeavensAbove->new;
+my $g = WWW::Gazetteer::HeavensAbove->new( retry => 10 );
 
 diag("Be patient... this test suite is very long (113 web requests)");
 

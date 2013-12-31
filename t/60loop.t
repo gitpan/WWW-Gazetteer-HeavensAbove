@@ -15,7 +15,7 @@ diag "Warning: this test may be a little long";
 # See CPAN RT ticket #42709
 # https://rt.cpan.org/Ticket/Display.html?id=42709
 
-my $atlas = WWW::Gazetteer::HeavensAbove->new;
+my $atlas = WWW::Gazetteer::HeavensAbove->new( retry => 10 );
 my %seen;
 my $cb = sub {
     for my $city (@_) {

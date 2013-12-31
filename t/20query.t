@@ -9,7 +9,7 @@ plan 'skip_all' => 'Internet connection required to run this test'
 
 plan tests => 12;
 
-my $g = WWW::Gazetteer::HeavensAbove->new( retry => 1 );
+my $g = WWW::Gazetteer::HeavensAbove->new( retry => 10 );
 my @cities;
 
 # simple query
