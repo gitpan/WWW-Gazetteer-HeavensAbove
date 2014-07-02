@@ -4,6 +4,8 @@ use t::Util;
 use Test::More;
 use WWW::Gazetteer::HeavensAbove;
 
+plan skip_all => 'WWW::Gazetteer::HeavensAbove is now obsolete';
+
 plan 'skip_all' => 'Internet connection required to run this test'
    if ! web_ok();
 

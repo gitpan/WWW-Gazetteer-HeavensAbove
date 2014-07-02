@@ -1,4 +1,9 @@
-Revision history for Perl extension WWW::Gazetteer::Heavens
+Revision history for Perl extension WWW::Gazetteer::HeavensAbove
+
+0.23 Thu Jul 3 2014
+        - this module is now OBSOLETE and will be removed from CPAN
+        - add a big bold warning in the DESCRIPTION
+        - skip all tests that actually connnect to the web site
 
 0.22 Tue Dec 31 2013
         - double the wait time between retries after failed HTTP requests

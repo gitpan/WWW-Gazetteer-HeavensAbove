@@ -3,26 +3,26 @@ abstract: 'Find location of world towns and cities'
 author:
   - 'Philippe Bruhat (BooK) <book@cpan.org>'
 build_requires:
-  Test: 0
-  Test::More: 0.88
+  Test: '0'
+  Test::More: '0.88'
 configure_requires:
-  ExtUtils::MakeMaker: 6.30
+  ExtUtils::MakeMaker: '6.30'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300020, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Dist::Zilla version 5.016, CPAN::Meta::Converter version 2.133380'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: WWW-Gazetteer-HeavensAbove
 requires:
-  Carp: 0
-  HTML::Form: 5.802
-  HTML::TreeBuilder: 3.13
-  LWP::UserAgent: 5.802
-  strict: 0
-  vars: 0
-  warnings: 0
+  Carp: '0'
+  HTML::Form: '5.802'
+  HTML::TreeBuilder: '3.13'
+  LWP::UserAgent: '5.802'
+  strict: '0'
+  vars: '0'
+  warnings: '0'
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Gazetteer-HeavensAbove
   repository: http://github.com/book/WWW-Gazetteer-HeavensAbove.git
-version: 0.22
+version: '0.23'

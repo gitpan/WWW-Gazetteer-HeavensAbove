@@ -1,8 +1,5 @@
 package WWW::Gazetteer::HeavensAbove;
-{
-  $WWW::Gazetteer::HeavensAbove::VERSION = '0.22';
-}
-
+$WWW::Gazetteer::HeavensAbove::VERSION = '0.23';
 use strict;
 use warnings;
 use LWP::UserAgent;
@@ -226,6 +223,66 @@ my %iso = (
     'VI'  => 'UI',   # VIRGIN ISLANDS (U.S.)
 );
 
+=begin codes
+
+# Heavens-above places without ISO 3166 code
+# You can use those with query()
+%ha = (
+        'JE' => 'JERSEY',
+        'SR' => 'SERBIA',
+        'MW' => 'MONTENEGRO',
+        'GK' => 'GUERNSEY',
+        'GZ' => 'GAZA STRIP',
+        'WE' => 'WEST BANK',
+      );
+
+# ISO 3166 codes not used yet or countries not in HA
+%iso = (
+         'IO' => 'BRITISH INDIAN OCEAN TERRITORY',
+         'BV' => 'BOUVET ISLAND',
+         'YT' => 'MAYOTTE',
+         'YU' => 'YUGOSLAVIA',
+         'RE' => 'REUNION',
+         'RW' => 'RWANDA',
+         'KM' => 'COMOROS',
+         'SC' => 'SEYCHELLES',
+         'SJ' => 'SVALBARD AND JAN MAYEN ISLANDS',
+         'SM' => 'SAN MARINO',
+         'ST' => 'SAO TOME AND PRINCIPE',
+         'TF' => 'FRENCH SOUTHERN TERRITORIES',
+         'EH' => 'WESTERN SAHARA',
+         'TK' => 'TOKELAU',
+         'TP' => 'EAST TIMOR',
+         'MO' => 'MACAU',
+         'MP' => 'NORTHERN MARIANA ISLANDS',
+         'MQ' => 'MARTINIQUE',
+         'MS' => 'MONTSERRAT',
+         'FK' => 'FALKLAND ISLANDS (MALVINAS)',
+         'UM' => 'UNITED STATES MINOR OUTLYING ISLANDS',
+         'FM' => 'MICRONESIA, FEDERATED STATES OF',
+         'NC' => 'NEW CALEDONIA',
+         'FX' => 'FRANCE, METROPOLITAN',
+         'VA' => 'VATICAN CITY STATE (HOLY SEE)',
+         'NR' => 'NAURU',
+         'NU' => 'NIUE',
+         'VG' => 'VIRGIN ISLANDS (BRITISH)',
+         'GL' => 'GREENLAND',
+         'GP' => 'GUADELOUPE',
+         'GS' => 'SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS',
+         'GW' => 'GUINEA-BISSAU',
+         'HM' => 'HEARD AND MC DONALD ISLANDS',
+         'WS' => 'SAMOA',
+         'PM' => 'ST. PIERRE AND MIQUELON',
+         'PN' => 'PITCAIRN',
+         'PW' => 'PALAU'
+
+         # removed from HA since version 0.18
+         'AN' => 'NETHERLANDS ANTILLES / NETHERLAND ANTILLES', # NT
+       );
+
+=end codes
+
+=cut
 
 my %isolatin = (
     a => '[Aa¿¡¬√ƒ≈‡·‚„‰Â]',
@@ -418,17 +475,13 @@ sub _getpage {
 
 1;
 
+__END__
 
-
-=pod
+=encoding iso-8859-1
 
 =head1 NAME
 
 WWW::Gazetteer::HeavensAbove - Find location of world towns and cities
-
-=head1 VERSION
-
-version 0.22
 
 =head1 SYNOPSIS
 
@@ -472,6 +525,14 @@ version 0.22
 
 =head1 DESCRIPTION
 
+B<This module is obsolete, and is going to be removed from CPAN
+on 2014-07-06.>
+
+B<As of 2014-01-24, L<http://www.heavens-above.com/SelectTown.aspx>
+started returning a C<500 Internal Server Error> code.
+The site has moved from using its own geographic database
+to using Google map services, making this module obsolete.>
+
 A gazetteer is a geographical dictionary (as at the back of an atlas).
 The WWW::Gazetteer::HeavensAbove module uses the information at
 L<http://www.heavens-above.com/countries.asp> to return geographical location
@@ -513,7 +574,7 @@ Here is an example of an American city:
      longitude  => '-93.927',
      name       => 'New York'
  };
-
+ 
 =head2 Methods
 
 =over 4
@@ -617,65 +678,6 @@ An example callback is (from F<eg/city.pl>):
 Please note that, due to the nature of the queries, your callback
 can (and will most probably) be called with an empty C<@_>.
 
-=begin codes
-
-# Heavens-above places without ISO 3166 code
-# You can use those with query()
-%ha = (
-        'JE' => 'JERSEY',
-        'SR' => 'SERBIA',
-        'MW' => 'MONTENEGRO',
-        'GK' => 'GUERNSEY',
-        'GZ' => 'GAZA STRIP',
-        'WE' => 'WEST BANK',
-      );
-
-# ISO 3166 codes not used yet or countries not in HA
-%iso = (
-         'IO' => 'BRITISH INDIAN OCEAN TERRITORY',
-         'BV' => 'BOUVET ISLAND',
-         'YT' => 'MAYOTTE',
-         'YU' => 'YUGOSLAVIA',
-         'RE' => 'REUNION',
-         'RW' => 'RWANDA',
-         'KM' => 'COMOROS',
-         'SC' => 'SEYCHELLES',
-         'SJ' => 'SVALBARD AND JAN MAYEN ISLANDS',
-         'SM' => 'SAN MARINO',
-         'ST' => 'SAO TOME AND PRINCIPE',
-         'TF' => 'FRENCH SOUTHERN TERRITORIES',
-         'EH' => 'WESTERN SAHARA',
-         'TK' => 'TOKELAU',
-         'TP' => 'EAST TIMOR',
-         'MO' => 'MACAU',
-         'MP' => 'NORTHERN MARIANA ISLANDS',
-         'MQ' => 'MARTINIQUE',
-         'MS' => 'MONTSERRAT',
-         'FK' => 'FALKLAND ISLANDS (MALVINAS)',
-         'UM' => 'UNITED STATES MINOR OUTLYING ISLANDS',
-         'FM' => 'MICRONESIA, FEDERATED STATES OF',
-         'NC' => 'NEW CALEDONIA',
-         'FX' => 'FRANCE, METROPOLITAN',
-         'VA' => 'VATICAN CITY STATE (HOLY SEE)',
-         'NR' => 'NAURU',
-         'NU' => 'NIUE',
-         'VG' => 'VIRGIN ISLANDS (BRITISH)',
-         'GL' => 'GREENLAND',
-         'GP' => 'GUADELOUPE',
-         'GS' => 'SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS',
-         'GW' => 'GUINEA-BISSAU',
-         'HM' => 'HEARD AND MC DONALD ISLANDS',
-         'WS' => 'SAMOA',
-         'PM' => 'ST. PIERRE AND MIQUELON',
-         'PN' => 'PITCAIRN',
-         'PW' => 'PALAU'
-
-         # removed from HA since version 0.18
-         'AN' => 'NETHERLANDS ANTILLES / NETHERLAND ANTILLES', # NT
-       );
-
-=end codes
-
 =head1 ALGORITHM
 
 The web site returns only the first 200 answers to any query.
@@ -741,6 +743,18 @@ USA and dependencies, and The National Imaging and Mapping Agency
 
 See also: L<http://www.heavens-above.com/ShowFAQ.aspx?FAQID=100>
 
+Please report any bugs or feature requests on the bugtracker website
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Gazetteer-HeavensAbove> or by
+email to bug-git-repository@rt.cpan.org.
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
+
+=head1 AUTHOR
+
+Philippe Bruhat (BooK) <book@cpan.org>
+
 =head1 ACKNOWLEDGEMENTS
 
 This module was a script, before I found out about Leon Brocard's
@@ -764,23 +778,9 @@ The module master repository is held at:
 L<http://git.bruhat.net/r/WWW-Gazetteer-HeavensAbove.git> and
 L<http://github.com/book/WWW-Gazetteer-HeavensAbove>.
 
-=head1 BUGS
-
-Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Gazetteer-HeavensAbove or by
-email to bug-git-repository@rt.cpan.org.
-
-When submitting a bug or request, please include a test-file or a
-patch to an existing test-file that illustrates the bug or desired
-feature.
-
-=head1 AUTHOR
-
-Philippe Bruhat (BooK) <book@cpan.org>
-
 =head1 COPYRIGHT
 
-Copyright 2002-2013 Philippe Bruhat (BooK).
+Copyright 2002-2014 Philippe Bruhat (BooK).
 
 =head1 LICENSE
 
@@ -788,9 +788,3 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
-
-
-__END__
-
-# ABSTRACT: Find location of world towns and cities
-
